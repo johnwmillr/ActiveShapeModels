@@ -1,0 +1,20 @@
+# Face images
+*.jpg
+*.Jpg
+*.png
+
+# Media files
+/Media
+
+# Matlab files
+*_v*.m
+*.m~
+*.mat
+
+# Dropbox settings and caches
+*.dropbox
+*.dropbox.attr
+*.dropbox.cache
+
+# OS X
+*.DS_Store
