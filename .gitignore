@@ -3,8 +3,10 @@
 *.Jpg
 *.png
 
-# Media files
+# Ignore directories
 /Media
+/Old
+/Landmarks
 
 # Matlab files
 *_v*.m

@@ -55,9 +55,6 @@ legend({'Real','Model'},'location','best')
 title(sprintf('Approximation of new shape using first %d PCs from the model',n_pcs),'fontsize',FS)
 
 
-
-
-
 %% Connect dots around the face
 faceLabels = cell(7,1);
 faceLabels{1} = 1:3;
@@ -104,19 +101,6 @@ end
 plot(xBar(1:2:end),xBar(2:2:end),'k.','linewidth',3)
 set(gca,'ydir','reverse'), axis square
 xlim(xLim), ylim(yLim)
-title(sprintf('Variation of PC #%d'n,n_pc),'fontsize',20)
-
-% % Subplots
-% figure, subplot(1,n_vars,1);
-% for n = 1:n_vars
-%     subplot(1,n_vars,n);
-%     plot(shapeVariations(1:2:end,n),shapeVariations(2:2:end,n),'o')
-%     set(gca,'ydir','reverse')
-%     axis square
-%     xlim(xLim), ylim(yLim)
-% end
-
-
-
+title(sprintf('Variation of PC #%d',n_pc),'fontsize',20)
 
 
