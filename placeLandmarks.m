@@ -2,10 +2,15 @@ function [allLandmarks,image_idxs] = placeLandmarks(pathToImages,n_landmarks,n_s
 % PLACELANDMARKS allows user to interactively place landmarks on an image.
 %
 %	INPUT
-%
-%
+%       pathToImages: Directory containing images (string)
+%       n_landmarks:  Number of landmarks to assign to each image
+%       n_scans_to_label: Number of scans to label from the directory
+%       image_idxs:   
 %
 %	OUTPUT
+%       allLandmarks: Matrix containing the assigned landmarks for each image
+%                       [2*n_landmarks x n_images]
+%       image_idxs: 
 %
 %
 % John W. Miller
@@ -33,6 +38,8 @@ else
     imagesToLabel = pathsToAllImages(image_idxs);
 end
 allLandmarks = zeros(2*n_landmarks,n_scans_to_label);
+
+landmarkInfo = struct();
 
 %% Loop through each scan, user placing landmarks on each
 tic
@@ -62,10 +69,9 @@ for n_scan = 1:n_scans_to_label
     landmarks(2:2:end,:) = y;
     allLandmarks(:,n_scan) = landmarks;
     
-    % Connect the landmarks w/ a spline
-    %     pp = spline(x,y);
-    %     xx = linspace(min(x),max(x));
-    %     plot(xx,ppval(pp,xx),'-')
+    % Store info about the landmarks and image
+    landmarkInfo(n_scan).path = imagesToLabel{n_scan};
+    landmarkInfo(n_scan).landmarks = landmarks;
     pause(0.3)
 end
 close, toc
@@ -74,7 +80,7 @@ close, toc
 save_landmarks = 1;
 if save_landmarks
     save_name = ['landmarks_' input('Save name? landmarks_','s') '.mat'];
-    save(save_name,'allLandmarks','image_idxs');
+    save(save_name,'allLandmarks','image_idxs','landmarkInfo');
 end
 
 

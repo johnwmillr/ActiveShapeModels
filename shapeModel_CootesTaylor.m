@@ -67,7 +67,7 @@ faceLabels{7} = 20;
 
 
 %% Examine variations from individual PCs
-n_pc = 1;
+n_pc = 3;
 b = sqrt(D(n_pc))*(-3:3);
 n_vars = length(b);
 
@@ -102,5 +102,59 @@ plot(xBar(1:2:end),xBar(2:2:end),'k.','linewidth',3)
 set(gca,'ydir','reverse'), axis square
 xlim(xLim), ylim(yLim)
 title(sprintf('Variation of PC #%d',n_pc),'fontsize',20)
+
+%% Edge detection using ASMs
+
+% Probably going to need to do some image processing to enhance edges in the images
+imDir = './Images/faces_B';
+imFile = 'B_49_0.jpg';
+im = imread(fullfile(imDir,imFile));
+imshow(im), hold on
+plot(xBar(1:2:end),xBar(2:2:end),'ro','linewidth',2)
+
+% Loop through each landmark point, calculating the normal vector
+n_points = length(xBar);
+xy = [xBar(1:2:end) xBar(2:2:end)];
+R = [0 -1 1 0]; % Rotate 90 degrees
+for n = 2:n_points
+    
+    
+    
+    
+    plot(xy([n-1 n+1],1),xy([n-1 n+1],2),'o-'), hold on
+    a = R*[xy([n-1 n+1],1),xy([n-1 n+1],2)];
+    plot(a(:,1),a(:,2),'ro-')
+
+end
+
+
+
+
+
+
+
+
+
+
+
+%%
+% bw = edge(im,'canny',.1);
+bw = edge(im,'zerocross');
+
+imshow(bw), hold on
+% plot(xBar(1:2:end),xBar(2:2:end),'ro','linewidth',2)
+
+%%
+im_thresh = im2bw(im,graythresh(im));
+figure, imshow(im_thresh)
+
+[gMag, gDir] = imgradient(im_thresh); % Image gradient
+figure, imshow(gMag)
+
+
+
+
+
+
 
 
