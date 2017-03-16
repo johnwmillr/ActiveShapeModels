@@ -5,6 +5,8 @@ function plotLandmarks(landmarks,varargin)
 %       landmarks: The aligned landmarks from multiple images
 %                  [2*n_landmarks x n_shapes]
 %
+%   See also PLACELANDMARKS, ALIGNSHAPES
+%
 % John W. Miller
 % 14-Mar-2017
 

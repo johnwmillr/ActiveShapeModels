@@ -13,6 +13,9 @@ function plotPrinComp(V,D,xBar,n_pc)
 %
 %   See also PLACELANDMARKS, PLOTLANDMARKS, ALIGNSHAPES
 %
+%   TODO:
+%       If n_pc is a vector, plot a single subplot containing multiple PCs
+%
 % John W. Miller
 % 16-Mar-2017
 
@@ -41,7 +44,8 @@ mew(:,1) = xBar(1:2:end);
 mew(:,2) = xBar(2:2:end);
 figure, hold on
 colors = hsv(n_vars);
-for n = 1:n_vars    
+for n = 1:n_vars
+    
     iVar = zeros(size(shapeVariations,1)/2,2);
     iVar(:,1) = shapeVariations(1:2:end,n);
     iVar(:,2) = shapeVariations(2:2:end,n);
@@ -53,35 +57,13 @@ for n = 1:n_vars
     for i = 1:length(faceLabels)
         plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'k-','linewidth',1)
         plot(iVar(faceLabels{i},1),iVar(faceLabels{i},2), '-','linewidth',1,'color',colors(n,:))
-    end
+    end    
     
 end
 plot(xBar(1:2:end),xBar(2:2:end),'k.','linewidth',3)
 set(gca,'ydir','reverse'), axis square
 xlim(xLim), ylim(yLim)
 title(sprintf('Variation of PC #%d',n_pc),'fontsize',20)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 end % End of main

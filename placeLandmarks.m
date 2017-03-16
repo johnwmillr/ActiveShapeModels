@@ -13,6 +13,7 @@ function allLandmarks = placeLandmarks(pathToImages,n_landmarks,n_scans_to_label
 %       allLandmarks: Matrix containing the assigned landmarks for each image
 %                       [2*n_landmarks x n_images]
 %
+%   See also PLOTLANDMARKS, ALIGNSHAPES
 %
 % John W. Miller
 % 14-Feb-2017

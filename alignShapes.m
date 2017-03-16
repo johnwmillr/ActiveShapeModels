@@ -17,7 +17,7 @@ function [alignedShapes, avgDiff] = alignShapes(allShapes, scaling)
 %       "Active Shape Models-Their Training and Application. Computer Vision and
 %       Image Understanding."
 %
-%   See also PROCRUSTES, PLOTLANDMARKS
+%   See also PROCRUSTES, PLACELANDMARKS, PLOTLANDMARKS
 %
 % John W. Miller
 % 15-Mar-2017
