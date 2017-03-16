@@ -15,11 +15,10 @@
 
 
 %% Faces
-% [landmarks,idxs] = placeLandmarks(pathToImages,20,10);
-% load('landmarks_faces_set01')
-load('./Landmarks/landmarks_faces_A_23')
-landmarksTraining = allLandmarks;
-alignedShapes = alignShapes(landmarksTraining,0);
+% Place landmarks
+% landmarks = placeLandmarks(pathToImages,20,10);
+load('./Landmarks/landmarks_faces_A_1-50')
+alignedShapes = alignShapes(allLandmarks,0);
 plotLandmarks(alignedShapes)
 
 % Create PCA model (on a subset of shapes)
