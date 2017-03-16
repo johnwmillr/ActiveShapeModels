@@ -1,44 +1,37 @@
-function [allLandmarks,image_idxs] = placeLandmarks(pathToImages,n_landmarks,n_scans_to_label,image_idxs)
+function allLandmarks = placeLandmarks(pathToImages,n_landmarks,n_scans_to_label,varargin)
 % PLACELANDMARKS allows user to interactively place landmarks on an image.
 %
 %	INPUT
 %       pathToImages: Directory containing images (string)
 %       n_landmarks:  Number of landmarks to assign to each image
 %       n_scans_to_label: Number of scans to label from the directory
-%       image_idxs:   
+%       OPTIONAL (key-value pairs)
+%           image_idxs:
+%           save_landmarks:
 %
 %	OUTPUT
 %       allLandmarks: Matrix containing the assigned landmarks for each image
 %                       [2*n_landmarks x n_images]
-%       image_idxs: 
 %
 %
 % John W. Miller
 % 14-Feb-2017
 
-% Varargin
-if nargin < 3
-    n_scans_to_label = 3;
-end
-if nargin < 4
-    image_idxs = [];
-end
+% Key-value pair varargin
+keys = {'image_idxs','save_landmarks','file_ext'}; default_values = {[],1,'.jpg'};
+[image_idxs,save_landmarks,file_ext] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Get paths for every single patient scan in directory
-file_extension = '*.jpg';
-files = dir(fullfile(pathToImages,file_extension));
+files = dir(fullfile(pathToImages,['*' file_ext]));
 pathsToAllImages = strcat([pathToImages filesep],{files.name}');
 
-% Randomly select scans to label, unless scan indices were specified
+% Label all images in directory, unless scan indices were specified
 if isempty(image_idxs)
-%     [imagesToLabel,image_idxs] = datasample(pathsToAllImages,n_scans_to_label,'replace',false);
-    imagesToLabel = pathsToAllImages;
-    image_idxs = 1:length(imagesToLabel);
+    imagesToLabel = pathsToAllImages;   
 else
     imagesToLabel = pathsToAllImages(image_idxs);
 end
 allLandmarks = zeros(2*n_landmarks,n_scans_to_label);
-
 landmarkInfo = struct();
 
 %% Loop through each scan, user placing landmarks on each
@@ -77,11 +70,9 @@ end
 close, toc
 
 % Save the landmarks?
-save_landmarks = 1;
 if save_landmarks
     save_name = ['landmarks_' input('Save name? landmarks_','s') '.mat'];
     save(save_name,'allLandmarks','image_idxs','landmarkInfo');
 end
-
 
 end % End of main
