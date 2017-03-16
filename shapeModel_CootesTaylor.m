@@ -21,8 +21,8 @@ load('./Landmarks/landmarks_faces_A_1-50')
 alignedShapes = alignShapes(allLandmarks,0);
 plotLandmarks(alignedShapes)
 
-% Create PCA model (on a subset of shapes)
-x = alignedShapes(:,1:20);
+%% Create PCA model (on a subset of shapes)
+x = alignedShapes(:,1:45);
 xBar = mean(x,2);  % Mean shape
 S = cov(x');       % Covariance matrix
 [V,D] = eig(S);    % Eigenvectors
@@ -36,10 +36,9 @@ figure
 plot3(weights(1,:),weights(2,:),weights(3,:),'o')
 xlabel('b1','fontsize',FS), ylabel('b2','fontsize',FS), zlabel('b3','fontsize',FS), grid on
 
-
 %% Get weights for a new shape
 n_pcs = 3;
-y = alignedShapes(:,21);
+y = alignedShapes(:,end);
 
 % Solve for the weights that will approximate the new shape using the model
 P = V(:,1:n_pcs);
@@ -53,102 +52,115 @@ set(gca,'ydir','reverse')
 legend({'Real','Model'},'location','best')
 title(sprintf('Approximation of new shape using first %d PCs from the model',n_pcs),'fontsize',FS)
 
-
-%% Connect dots around the face
-faceLabels = cell(7,1);
-faceLabels{1} = 1:3;
-faceLabels{2} = 4:6;
-faceLabels{3} = 7:9;
-faceLabels{4} = 10:12;
-faceLabels{5} = 13:15;
-faceLabels{6} = [16:19 16];
-faceLabels{7} = 20;
-
-
 %% Examine variations from individual PCs
-n_pc = 3;
-b = sqrt(D(n_pc))*(-3:3);
-n_vars = length(b);
-
-% Create some shape variations
-P = V(:,n_pc);
-shapeVariations = repmat(xBar,1,n_vars) + P*b;
-xLim = [floor(min(min(shapeVariations(1:2:end,:)))) ceil(max(max(shapeVariations(1:2:end))))];
-yLim = [floor(min(min(shapeVariations(2:2:end,:)))) ceil(max(max(shapeVariations(2:2:end))))];
-
-
-% Color variation
-mew(:,1) = xBar(1:2:end);
-mew(:,2) = xBar(2:2:end);
-figure, hold on
-colors = hsv(n_vars);
-for n = 1:n_vars    
-    iVar = zeros(size(shapeVariations,1)/2,2);
-    iVar(:,1) = shapeVariations(1:2:end,n);
-    iVar(:,2) = shapeVariations(2:2:end,n);
-    
-    % Plot the PC variations
-    plot(iVar(:,1),iVar(:,2),'o','color',colors(n,:))
-    
-    % Connect the dots
-    for i = 1:length(faceLabels)
-        plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'k-','linewidth',1)
-        plot(iVar(faceLabels{i},1),iVar(faceLabels{i},2), '-','linewidth',1,'color',colors(n,:))
-    end
-    
-end
-plot(xBar(1:2:end),xBar(2:2:end),'k.','linewidth',3)
-set(gca,'ydir','reverse'), axis square
-xlim(xLim), ylim(yLim)
-title(sprintf('Variation of PC #%d',n_pc),'fontsize',20)
+plotPrinComp(V,D,xBar,1)
 
 %% Edge detection using ASMs
 
 % Probably going to need to do some image processing to enhance edges in the images
-imDir = './Images/faces_B';
+imDir = './Faces/faces_B';
 imFile = 'B_49_0.jpg';
 im = imread(fullfile(imDir,imFile));
 imshow(im), hold on
 plot(xBar(1:2:end),xBar(2:2:end),'ro','linewidth',2)
 
-% Loop through each landmark point, calculating the normal vector
-n_points = length(xBar);
-xy = [xBar(1:2:end) xBar(2:2:end)];
-R = [0 -1 1 0]; % Rotate 90 degrees
-for n = 2:n_points
-    
-    
-    
-    
-    plot(xy([n-1 n+1],1),xy([n-1 n+1],2),'o-'), hold on
-    a = R*[xy([n-1 n+1],1),xy([n-1 n+1],2)];
-    plot(a(:,1),a(:,2),'ro-')
+hFilt = fspecial('average',4*[1 1]);
+im_filt = imfilter(im,hFilt);
+im_gMag = imgradient(im_filt); % Image gradient
+figure, imshow(im_gMag,[])
 
+
+%% Connect dots around the face
+faceRegions = cell(7,1);
+faceRegions{1} = 1:3;
+faceRegions{2} = 4:6;
+faceRegions{3} = 7:9;
+faceRegions{4} = 10:12;
+faceRegions{5} = 13:15;
+faceRegions{6} = [16:19 16];
+faceRegions{7} = 20;
+
+
+
+%% Loop through each landmark point, calculating the normal vector
+
+
+
+n_landmarks = length(xBar)/2;
+xy = [xBar(1:2:end) xBar(2:2:end)];
+R = [0 1; -1 0]; % Rotate 90 degrees
+
+% Adjustments along the normal (in image space)
+dX = zeros(2*n_landmarks); % {dX0, dY0, dX1 dY1, ..., dXn-1 dYn-1)
+
+% Plot the mean shape on image
+figure, imshow(im_gMag,[]), hold on
+for n = 1:n_landmarks,plot(xy(n,1),xy(n,2),'mo');end;
+
+for n = 1:n_landmarks
+    
+    
+    if any(n==faceRegions{1}) % Left eye
+        [p0,p1,p2] = deal(xy(1,:),xy(n,:),xy(3,:));
+    elseif any(n==faceRegions{2})
+        [p0,p1,p2] = deal(xy(4,:),xy(n,:),xy(6,:));
+    elseif any(n==faceRegions{3})
+        [p0,p1,p2] = deal(xy(7,:),xy(n,:),xy(9,:));
+    elseif any(n==faceRegions{4})
+        [p0,p1,p2] = deal(xy(10,:),xy(n,:),xy(12,:));
+    elseif any(n==faceRegions{5})
+        [p0,p1,p2] = deal(xy(13,:),xy(n,:),xy(15,:));
+    elseif any(n==faceRegions{6})
+        switch n
+            case 16
+                [p0,p1,p2] = deal(xy(19,:), xy(n,:),xy(n+1,:));
+            case 17
+                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
+            case 18
+                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
+            case 19
+                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
+        end
+    elseif any(n==faceRegions{7})
+        [p0,p1,p2] = deal(xy(17,:),xy(n,:),xy(18,:));
+    end
+                
+    % Normal vector
+    vNorm = (p2-p0)*R;
+    
+    % Point slope form of normal line through the current point
+    m = vNorm(2)/vNorm(1);
+    y = @(p1,m,x) (x-p1(1))*m+p1(2); % The output of this will be pixels (right?)
+    
+    
+    % Put the normal vector on the image
+    X = 1:size(im,1);
+    plot(X,y(p1,m,X),'r.')
+    
+    pause
+    
+    
+    %     dX(n,:) = [];
+    
+    
 end
 
 
-
-
-
-
-
-
-
-
-
 %%
-% bw = edge(im,'canny',.1);
-bw = edge(im,'zerocross');
+% After looping through each point and looking along the normal, we'll end up with a
+% set of suggested points, the same dimension as our mean shape. It's then just a
+% simple matter of using Procrustes to translate the current points to the suggested
+% points.
+suggestedPoints = [];
 
-imshow(bw), hold on
-% plot(xBar(1:2:end),xBar(2:2:end),'ro','linewidth',2)
+currentPoints = procrustes(suggestedPoints,currentPoints,'scaling',0);
 
-%%
-im_thresh = im2bw(im,graythresh(im));
-figure, imshow(im_thresh)
+P = V(:,1:5);
+dx; % adjustment vectors w/in the image space
+db = P'*dx; % adjustments w/in the model space
 
-[gMag, gDir] = imgradient(im_thresh); % Image gradient
-figure, imshow(gMag)
+
+
 
 
 
