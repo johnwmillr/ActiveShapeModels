@@ -17,6 +17,7 @@
 %% Faces
 % Place landmarks
 % landmarks = placeLandmarks(pathToImages,20,10);
+addpath('./Utilities/')
 load('./Landmarks/landmarks_faces_A_1-50')
 alignedShapes = alignShapes(allLandmarks,0);
 plotLandmarks(alignedShapes)
@@ -84,8 +85,6 @@ faceRegions{7} = 20;
 
 %% Loop through each landmark point, calculating the normal vector
 
-
-
 n_landmarks = length(xBar)/2;
 xy = [xBar(1:2:end) xBar(2:2:end)];
 R = [0 1; -1 0]; % Rotate 90 degrees
@@ -97,20 +96,18 @@ dX = zeros(2*n_landmarks); % {dX0, dY0, dX1 dY1, ..., dXn-1 dYn-1)
 figure, imshow(im_gMag,[]), hold on
 for n = 1:n_landmarks,plot(xy(n,1),xy(n,2),'mo');end;
 
-for n = 1:n_landmarks
-    
-    
-    if any(n==faceRegions{1}) % Left eye
+for n = 1:n_landmarks        
+    if any(n==faceRegions{1})     % Left eye
         [p0,p1,p2] = deal(xy(1,:),xy(n,:),xy(3,:));
-    elseif any(n==faceRegions{2})
+    elseif any(n==faceRegions{2}) % Right eye
         [p0,p1,p2] = deal(xy(4,:),xy(n,:),xy(6,:));
-    elseif any(n==faceRegions{3})
+    elseif any(n==faceRegions{3}) % Left eyebrow
         [p0,p1,p2] = deal(xy(7,:),xy(n,:),xy(9,:));
-    elseif any(n==faceRegions{4})
+    elseif any(n==faceRegions{4}) % Right eyebrow
         [p0,p1,p2] = deal(xy(10,:),xy(n,:),xy(12,:));
-    elseif any(n==faceRegions{5})
+    elseif any(n==faceRegions{5}) % Nose
         [p0,p1,p2] = deal(xy(13,:),xy(n,:),xy(15,:));
-    elseif any(n==faceRegions{6})
+    elseif any(n==faceRegions{6}) % Mouth
         switch n
             case 16
                 [p0,p1,p2] = deal(xy(19,:), xy(n,:),xy(n+1,:));
@@ -119,10 +116,10 @@ for n = 1:n_landmarks
             case 18
                 [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
             case 19
-                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
+                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(16,:));
         end
-    elseif any(n==faceRegions{7})
-        [p0,p1,p2] = deal(xy(17,:),xy(n,:),xy(18,:));
+    elseif any(n==faceRegions{7}) % Chin
+        [p0,p1,p2] = deal(xy(16,:),xy(n,:),xy(18,:));
     end
                 
     % Normal vector
@@ -131,12 +128,21 @@ for n = 1:n_landmarks
     % Point slope form of normal line through the current point
     m = vNorm(2)/vNorm(1);
     y = @(p1,m,x) (x-p1(1))*m+p1(2); % The output of this will be pixels (right?)
-    
-    
+
     % Put the normal vector on the image
-    X = 1:size(im,1);
-    plot(X,y(p1,m,X),'r.')
+    cols = 1:size(im,2);
+    rows = y(p1,m,cols);               
     
+    mask_bad_cols = ~and(rows>1,rows<size(im,1));
+    rows(mask_bad_cols) = [];
+    cols(mask_bad_cols) = [];                            
+    
+    plot(cols,rows,'go')
+    
+    
+    % Identify max edge value along line            
+    pixels = im(round(rows),round(cols));
+    [val,idx] = max(pixels(:));    
     pause
     
     
