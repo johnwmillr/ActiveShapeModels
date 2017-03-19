@@ -3,7 +3,7 @@ function plotPrinComp(V,D,xBar,n_pc)
 % active shapes model
 %
 %	INPUT
-%       V: Principal components (eigen vectors)
+%       V: Principal components (eigenvectors)
 %       D: Shape weights (eigenvalues)
 %       xBar: Mean shape [2*n_landmarks x 1]
 %       n_pc: Which PC do you want to display variations along?
