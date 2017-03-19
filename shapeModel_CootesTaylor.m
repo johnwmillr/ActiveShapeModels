@@ -75,16 +75,7 @@ figure, imshow(im_gMag,[])
 
 
 %% Connect dots around the face
-faceRegions = cell(7,1);
-faceRegions{1} = 1:3;
-faceRegions{2} = 4:6;
-faceRegions{3} = 7:9;
-faceRegions{4} = 10:12;
-faceRegions{5} = 13:15;
-faceRegions{6} = [16:19 16];
-faceRegions{7} = 20;
-
-
+faceRegions = getFaceRegions();
 
 %% Loop through each landmark point, calculating the normal vector
 

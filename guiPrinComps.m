@@ -1,10 +1,10 @@
-function [] = guiPrinComps(V,D,xBar)
+function guiPrinComps(xBar,V,D)
 % GUIPRINCOMPS
 %
 %	INPUT
+%       xBar: Mean shape [2*n_landmarks x 1]
 %       V: Principal components (eigenvectors)
 %       D: Shape weights (eigenvalues)
-%       xBar: Mean shape [2*n_landmarks x 1]
 %
 %	OUTPUT
 %
@@ -12,31 +12,38 @@ function [] = guiPrinComps(V,D,xBar)
 % John W. Miller
 % 17-Mar-2017
 
-%https://www.mathworks.com/help/control/ug/build-app-with-interactive-plot-updates.html
+% https://www.mathworks.com/help/control/ug/build-app-with-interactive-plot-updates.html
+% https://www.mathworks.com/help/matlab/ref/uicontrol.html
 
 % Connect dots around the face
-faceLabels = cell(7,1);
-faceLabels{1} = 1:3;
-faceLabels{2} = 4:6;
-faceLabels{3} = 7:9;
-faceLabels{4} = 10:12;
-faceLabels{5} = 13:15;
-faceLabels{6} = [16:19 16];
-faceLabels{7} = 20;
+faceRegions = getFaceRegions();
 
 % Examine variations from individual PCs
-n_variations = 7;
-weights = zeros(3,n_variations);
-for n = 1:3
-    weights(n,:) = sqrt(D(n))*(-3:3);
+n_pcs = 5;
+n_variations = 5; %
+if mod(n_variations,2) == 0
+    n_variations = n_variations + 1;
+end
+var_step = (n_variations-1)/2;
+weights = zeros(var_step,n_variations);
+for n = 1:n_pcs
+    weights(n,:) = sqrt(D(n))*(-var_step:var_step);
 end
 
 % Create some shape variations
-n_pcs = 2;
-P = V(:,n_pcs);
-shapeVariations = repmat(xBar,1,n_variations) + P*weights(n_pcs,:);
+n_pc = 2;
+P = V(:,n_pc);
+shapeVariations = repmat(xBar,1,n_variations) + P*weights(n_pc,:);
 
-% https://www.mathworks.com/help/matlab/ref/uicontrol.html
+
+%% Generate some shapes
+P = V(:,1:n_pcs);
+mask_weights = [1]
+newShape = xBar + P*weights(:,mask_weights);
+
+
+
+
 
 %% Create the GUI
 % Create a figure and axes
@@ -56,17 +63,17 @@ yLim = [0.8*min(min(shapeVariations(2:2:end,:))) 1.1*max(max(shapeVariations(2:2
 
 plot(mew(:,1),mew(:,2),'o','color','k','linewidth',2); hold on
 % Connect the dots
-for i = 1:length(faceLabels)
-    h = plot(iVar(faceLabels{i},1),iVar(faceLabels{i},2), '-','linewidth',2,'color','g');
+for i = 1:length(faceRegions)
+    h = plot(iVar(faceRegions{i},1),iVar(faceRegions{i},2), '-','linewidth',2,'color','g');
 end
 
 set(gca,'xlim',xLim,'ylim',yLim,'ydir','reverse')
 
 % Create slider
 min_val = 1;
-max_val = 7;
+max_val = n_variations;
 b1 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
-    'value',4, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc1,...
+    'value',var_step+1, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc1,...
     'SliderStep', [1/max_val 1/max_val]);
 
 % b2 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
@@ -87,8 +94,8 @@ b1 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
         
         hold off
         plot(mew(:,1),mew(:,2),'o','color','k','linewidth',2), hold on
-        for i = 1:length(faceLabels)
-            h = plot(iVar(faceLabels{i},1),iVar(faceLabels{i},2), '-','linewidth',2,'color','g');            
+        for i = 1:length(faceRegions)
+            h = plot(iVar(faceRegions{i},1),iVar(faceRegions{i},2), '-','linewidth',2,'color','g');            
             set(gca,'xlim',xLim,'ylim',yLim,'ydir','reverse')
         end        
     end

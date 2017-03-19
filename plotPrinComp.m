@@ -19,15 +19,7 @@ function plotPrinComp(V,D,xBar,n_pc)
 % John W. Miller
 % 16-Mar-2017
 
-% Connect dots around the face
-faceLabels = cell(7,1);
-faceLabels{1} = 1:3;
-faceLabels{2} = 4:6;
-faceLabels{3} = 7:9;
-faceLabels{4} = 10:12;
-faceLabels{5} = 13:15;
-faceLabels{6} = [16:19 16];
-faceLabels{7} = 20;
+faceRegions = getFaceRegions();
 
 % Examine variations from individual PCs
 b = sqrt(D(n_pc))*(-3:3);
@@ -54,9 +46,9 @@ for n = 1:n_vars
     plot(iVar(:,1),iVar(:,2),'o','color',colors(n,:))
     
     % Connect the dots
-    for i = 1:length(faceLabels)
-        plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'k-','linewidth',1)
-        plot(iVar(faceLabels{i},1),iVar(faceLabels{i},2), '-','linewidth',1,'color',colors(n,:))
+    for i = 1:length(faceRegions)
+        plot(mew(faceRegions{i},1), mew(faceRegions{i},2), 'k-','linewidth',1)
+        plot(iVar(faceRegions{i},1),iVar(faceRegions{i},2), '-','linewidth',1,'color',colors(n,:))
     end    
     
 end
