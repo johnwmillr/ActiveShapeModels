@@ -31,7 +31,7 @@ D = sort(diag(D),'descend');
 V = fliplr(V);
 
 %% GUI variations along the various PCs
-guiPrinComps(V,D,xBar)
+guiPrinComps(xBar,V,D);
 
 %% Get weights for first 3 PCs and plot them to check for independence between the PCs
 P = V(:,1:3);

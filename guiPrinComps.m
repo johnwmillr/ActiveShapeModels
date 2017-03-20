@@ -6,21 +6,19 @@ function guiPrinComps(xBar,V,D)
 %       V: Principal components (eigenvectors)
 %       D: Shape weights (eigenvalues)
 %
-%	OUTPUT
-%
-%
 % John W. Miller
 % 17-Mar-2017
 
 % https://www.mathworks.com/help/control/ug/build-app-with-interactive-plot-updates.html
 % https://www.mathworks.com/help/matlab/ref/uicontrol.html
 
-% Connect dots around the face
-faceRegions = getFaceRegions();
+% Initialization
+n_pcs = 3;
+slider_values = zeros(n_pcs,1);
+faceRegions = getFaceRegions(); % Connecting dots around the face
 
 % Examine variations from individual PCs
-n_pcs = 5;
-n_variations = 5; %
+n_variations = 11; % Must be an odd number
 if mod(n_variations,2) == 0
     n_variations = n_variations + 1;
 end
@@ -31,75 +29,76 @@ for n = 1:n_pcs
 end
 
 % Create some shape variations
-n_pc = 2;
-P = V(:,n_pc);
-shapeVariations = repmat(xBar,1,n_variations) + P*weights(n_pc,:);
-
-
-%% Generate some shapes
 P = V(:,1:n_pcs);
-mask_weights = [1]
-newShape = xBar + P*weights(:,mask_weights);
+shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
 
-
-
-
-
-%% Create the GUI
-% Create a figure and axes
+%% Initial visualization
 f = figure();
-ax = axes('Parent',f);%,'position',[0.13 0.39  0.77 0.54]);
 
-iVar = zeros(size(shapeVariations,1)/2,2);
-iVar(:,1) = shapeVariations(1:2:end,n);
-iVar(:,2) = shapeVariations(2:2:end,n);
-
-% Plot the PC variations
+% Determine mean shape and plot dimensions
 mew(:,1) = xBar(1:2:end);
 mew(:,2) = xBar(2:2:end);
-xLim = [0.8*min(min(shapeVariations(1:2:end,:))) 1.1*max(max(shapeVariations(1:2:end,:)))]';
-yLim = [0.8*min(min(shapeVariations(2:2:end,:))) 1.1*max(max(shapeVariations(2:2:end,:)))]';
+xLim = [0.8 0; 0 1.1]*[min(min(shapeVariations(1:2:end,:))) max(max(shapeVariations(1:2:end,:)))]';
+yLim = [0.8 0; 0 1.3]*[min(min(shapeVariations(2:2:end,:))) max(max(shapeVariations(2:2:end,:)))]';
 
+updatePlot(generateShape()); % Initial plot
 
-plot(mew(:,1),mew(:,2),'o','color','k','linewidth',2); hold on
-% Connect the dots
-for i = 1:length(faceRegions)
-    h = plot(iVar(faceRegions{i},1),iVar(faceRegions{i},2), '-','linewidth',2,'color','g');
-end
+%% Create the GUI sliders
+[min_val,max_val] = deal(-(n_variations-1)/2,(n_variations-1)/2);
+stepsize = (1/range([min_val max_val]))*[1 1];
 
-set(gca,'xlim',xLim,'ylim',yLim,'ydir','reverse')
+b1 = uicontrol('Parent',f,'Style','slider','Position',[81,75,419,23],...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc1,...
+    'SliderStep', stepsize);
 
-% Create slider
-min_val = 1;
-max_val = n_variations;
-b1 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
-    'value',var_step+1, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc1,...
-    'SliderStep', [1/max_val 1/max_val]);
+b2 = uicontrol('Parent',f,'Style','slider','Position',[81,50,419,23],...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc2,...
+    'SliderStep', stepsize);
 
-% b2 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
-%     'value',4, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc2,...
-%     'SliderStep', [1/max_val 1/max_val]);
-% 
-% b3 = uicontrol('Parent',f,'Style','slider','Position',[81,54,419,23],...
-%     'value',4, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc3,...
-%     'SliderStep', [1/max_val 1/max_val]);
-
+b3 = uicontrol('Parent',f,'Style','slider','Position',[81,25,419,23],...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc3,...
+    'SliderStep', stepsize);
 
 %% Callback functions
-    function b_callback_pc1(source,event)
-        val = round(get(source,'value'));
-        iVar = zeros(size(shapeVariations,1)/2,2);
-        iVar(:,1) = shapeVariations(1:2:end,val);
-        iVar(:,2) = shapeVariations(2:2:end,val);       
-        
-        hold off
-        plot(mew(:,1),mew(:,2),'o','color','k','linewidth',2), hold on
-        for i = 1:length(faceRegions)
-            h = plot(iVar(faceRegions{i},1),iVar(faceRegions{i},2), '-','linewidth',2,'color','g');            
-            set(gca,'xlim',xLim,'ylim',yLim,'ydir','reverse')
-        end        
+    function b_callback_pc1(source,event) %#ok<*INUSD>
+        slider_values(1) = round(get(source,'value'));
+        updatePlot(generateShape())
     end
 
+    function b_callback_pc2(source,event)
+        slider_values(2) = round(get(source,'value'));
+        updatePlot(generateShape())
+    end
 
+    function b_callback_pc3(source,event)
+        slider_values(3) = round(get(source,'value'));
+        updatePlot(generateShape())
+    end
+
+%% Generate and plot new shapes
+
+    function newShape = generateShape(newVal)        
+        % Calculate the weights for the updated shape
+        b = zeros(n_pcs,1);
+        for n_pc = 1:n_pcs
+            b(n_pc,1) = sqrt(D(n_pc))*(slider_values(n_pc));
+        end
+        
+        % Generate the shape
+        x = xBar + P*b;
+        newShape(:,1) = x(1:2:end);
+        newShape(:,2) = x(2:2:end);
+    end
+
+    function updatePlot(newShape)
+        hold off
+        for i = 1:length(faceRegions)
+            plot(newShape(faceRegions{i},1),newShape(faceRegions{i},2), '-','linewidth',2,'color','g'), hold on
+        end
+        plot(mew(:,1),mew(:,2),'.','color','k','linewidth',2)
+        set(gca,'xtick',[],'ytick',[])
+        set(gca,'xlim',xLim,'ylim',yLim,'ydir','reverse')
+        title('Move the sliders to change the weights on the first 3 PCs','fontsize',FS)
+    end
 
 end % End of main
