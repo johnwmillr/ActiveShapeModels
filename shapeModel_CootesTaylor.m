@@ -1,13 +1,9 @@
 % SHAPEMODEL_COOTESTAYLOR
 %
-%
-%
-%
 %   Shape analysis techniques based on this paper:
 %   Cootes, T. F., Taylor, C. J., Cooper, D. H., & Graham, J. (1995).
 %       "Active Shape Models-Their Training and Application. Computer Vision and
 %       Image Understanding."
-%
 %
 %
 % John W. Miller
@@ -29,9 +25,6 @@ S = cov(x');       % Covariance matrix
 [V,D] = eig(S);    % Eigenvectors
 D = sort(diag(D),'descend');
 V = fliplr(V);
-
-%% GUI variations along the various PCs
-guiPrinComps(xBar,V,D);
 
 %% Get weights for first 3 PCs and plot them to check for independence between the PCs
 P = V(:,1:3);
@@ -55,6 +48,9 @@ plot(newShape(1:2:end),newShape(2:2:end),'r.','markersize',10,'linewidth',2)
 set(gca,'ydir','reverse')
 legend({'Real','Model'},'location','best')
 title(sprintf('Approximation of new shape using first %d PCs from the model',n_pcs),'fontsize',FS)
+
+%% GUI variations along the various PCs
+guiPrinComps(xBar,V,D);
 
 %% Examine variations from individual PCs
 plotPrinComp(V,D,xBar,1)
@@ -88,7 +84,7 @@ dX = zeros(2*n_landmarks); % {dX0, dY0, dX1 dY1, ..., dXn-1 dYn-1)
 
 % Plot the mean shape on image
 figure, imshow(im_gMag,[]), hold on
-for n = 1:n_landmarks,plot(xy(n,1),xy(n,2),'mo');end;
+for n = 1:n_landmarks,plot(xy(n,1),xy(n,2),'go','linewidth',2);end;
 
 for n = 1:n_landmarks        
     if any(n==faceRegions{1})     % Left eye
@@ -131,17 +127,14 @@ for n = 1:n_landmarks
     rows(mask_bad_cols) = [];
     cols(mask_bad_cols) = [];                            
     
-    plot(cols,rows,'go')
+    plot(cols,rows,'r.','linewidth',2)
     
     
     % Identify max edge value along line            
     pixels = im(round(rows),round(cols));
     [val,idx] = max(pixels(:));    
-    pause
-    
-    
-    %     dX(n,:) = [];
-    
+%     pause
+       
     
 end
 

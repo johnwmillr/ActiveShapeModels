@@ -1,4 +1,4 @@
-function guiPrinComps(xBar,V,D)
+function guiPrinComps(xBar,V,D,varargin)
 % GUIPRINCOMPS
 %
 %	INPUT
@@ -11,6 +11,9 @@ function guiPrinComps(xBar,V,D)
 
 % https://www.mathworks.com/help/control/ug/build-app-with-interactive-plot-updates.html
 % https://www.mathworks.com/help/matlab/ref/uicontrol.html
+
+keys = {'show_image'}; default_values = {0};
+[show_image] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Initialization
 n_pcs = 3;
@@ -34,6 +37,12 @@ shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
 
 %% Initial visualization
 f = figure();
+if show_image    
+    imDir = fullfile(fileparts(which(mfilename)),'/Faces/faces_B');
+    imFile = 'B_49_0.jpg';
+    im = imread(fullfile(imDir,imFile));
+    imshow(im), hold on
+end
 
 % Determine mean shape and plot dimensions
 mew(:,1) = xBar(1:2:end);
@@ -92,8 +101,9 @@ b3 = uicontrol('Parent',f,'Style','slider','Position',[81,25,419,23],...
 
     function updatePlot(newShape)
         hold off
+        if show_image imshow(im), hold on, end
         for i = 1:length(faceRegions)
-            plot(newShape(faceRegions{i},1),newShape(faceRegions{i},2), '-','linewidth',2,'color','g'), hold on
+            plot(newShape(faceRegions{i},1),newShape(faceRegions{i},2), '.-','linewidth',2,'color','g'), hold on
         end
         plot(mew(:,1),mew(:,2),'.','color','k','linewidth',2)
         set(gca,'xtick',[],'ytick',[])
