@@ -28,8 +28,8 @@ values_FromUser   =       userKeyNamePairs(2:2:end);
 % Check that the user-supplied key names are valid (Excessive, I know...)
 name_check = ismember(keyNames_FromUser,valid_keys);
 if ~all(name_check)    
-    errmsg = sprintf('Invalid key names: %s', printcell(keyNames_FromUser(~name_check),', '));
-    error('%s\nValid key names:\n%s',errmsg,printcell(valid_keys))
+    errmsg = sprintf('Invalid key names: %s', print_cell(keyNames_FromUser(~name_check),', '));
+    error('%s\nValid key names:\n%s',errmsg,print_cell(valid_keys))
 end
 
 % Replace the default values with user-supplied values
@@ -42,4 +42,36 @@ end
 % Varargout
 varargout = values(processed_vars,valid_keys); % Must specify the order of keys to pull out
 
+end % End of main
+
+function varargout = print_cell(cell_to_print,delim)
+% PRINTCELL 
+%
+%	INPUT
+%
+%
+%
+%	OUTPUT
+%
+%
+% John W. Miller
+% 02-Jul-2016
+
+if nargin < 2
+    delim = sprintf('\n');    
+else
+    delim = sprintf(delim);
+end
+
+clear cell_as_string
+cell_as_string = cell_to_print{1};
+for i = 2:length(cell_to_print)
+    cell_as_string = [cell_as_string sprintf('%s%s',delim,cell_to_print{i})];    
+end
+
+if nargout > 0
+    varargout{1} = cell_as_string;
+else
+    disp(cell_as_string)
+end
 end % End of main
