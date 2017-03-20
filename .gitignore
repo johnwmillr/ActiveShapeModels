@@ -2,6 +2,7 @@
 *.jpg
 *.Jpg
 *.png
+*.ai
 
 # Ignore directories
 /Media
