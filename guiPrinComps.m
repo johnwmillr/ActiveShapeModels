@@ -54,35 +54,32 @@ updatePlot(generateShape()); % Initial plot
 
 %% Create the GUI sliders
 [min_val,max_val] = deal(-(n_variations-1)/2,(n_variations-1)/2);
-stepsize = (1/range([min_val max_val]))*[1 1];
+stepsize = (1/range([min_val max_val]))*[0.5 1]; % min, max
 
 b1 = uicontrol('Parent',f,'Style','slider','Position',[81,75,419,23],...
-    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc1,...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc_slider,...
     'SliderStep', stepsize);
 
 b2 = uicontrol('Parent',f,'Style','slider','Position',[81,50,419,23],...
-    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc2,...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc_slider,...
     'SliderStep', stepsize);
 
 b3 = uicontrol('Parent',f,'Style','slider','Position',[81,25,419,23],...
-    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc3,...
+    'value',0, 'min',min_val, 'max',max_val, 'callback', @b_callback_pc_slider,...
     'SliderStep', stepsize);
 
-%% Callback functions
-    function b_callback_pc1(source,event) %#ok<*INUSD>
-        slider_values(1) = round(get(source,'value'));
+%% Callback function
+    function b_callback_pc_slider(source,event)
+        switch get(source,'position')*[0 1 0 0]'
+            case 75 % PC 1
+                slider_values(1) = get(source,'value');
+            case 50 % PC 2
+                slider_values(2) = get(source,'value');
+            case 25 % PC 3
+                slider_values(3) = get(source,'value');
+        end        
         updatePlot(generateShape())
-    end
-
-    function b_callback_pc2(source,event)
-        slider_values(2) = round(get(source,'value'));
-        updatePlot(generateShape())
-    end
-
-    function b_callback_pc3(source,event)
-        slider_values(3) = round(get(source,'value'));
-        updatePlot(generateShape())
-    end
+    end   
 
 %% Generate and plot new shapes
 
