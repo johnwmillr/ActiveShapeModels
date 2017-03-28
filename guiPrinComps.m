@@ -5,12 +5,11 @@ function guiPrinComps(xBar,V,D,varargin)
 %       xBar: Mean shape [2*n_landmarks x 1]
 %       V: Principal components (eigenvectors)
 %       D: Shape weights (eigenvalues)
+%       OPTIONAL
+%           show_image: (bool) Display a face image in the background if true
 %
 % John W. Miller
 % 17-Mar-2017
-
-% https://www.mathworks.com/help/control/ug/build-app-with-interactive-plot-updates.html
-% https://www.mathworks.com/help/matlab/ref/uicontrol.html
 
 keys = {'show_image'}; default_values = {0};
 [show_image] = parseKeyValuePairs(varargin,keys,default_values);
@@ -34,6 +33,9 @@ end
 % Create some shape variations
 P = V(:,1:n_pcs);
 shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
+
+% Generate an initial shape
+firstShape = generateShape();
 
 %% Initial visualization
 f = figure();
@@ -83,11 +85,11 @@ b3 = uicontrol('Parent',f,'Style','slider','Position',[81,25,419,23],...
 
 %% Generate and plot new shapes
 
-    function newShape = generateShape(newVal)        
+    function newShape = generateShape()        
         % Calculate the weights for the updated shape
         b = zeros(n_pcs,1);
         for n_pc = 1:n_pcs
-            b(n_pc,1) = sqrt(D(n_pc))*(slider_values(n_pc));
+            b(n_pc,1) = sqrt(D(n_pc))*(slider_values(n_pc));            
         end
         
         % Generate the shape

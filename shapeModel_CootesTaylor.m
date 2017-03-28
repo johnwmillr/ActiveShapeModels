@@ -9,7 +9,6 @@
 % John W. Miller
 % 16-Feb-2017
 
-
 %% Faces
 % Place landmarks
 % landmarks = placeLandmarks(pathToImages,20,10);
@@ -50,7 +49,7 @@ legend({'Real','Model'},'location','best')
 title(sprintf('Approximation of new shape using first %d PCs from the model',n_pcs),'fontsize',FS)
 
 %% GUI variations along the various PCs
-guiPrinComps(xBar,V,D);
+guiPrinComps(xBar,V,D,'show_image',0);
 
 %% Examine variations from individual PCs
 plotPrinComp(V,D,xBar,1)
