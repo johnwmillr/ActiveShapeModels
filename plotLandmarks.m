@@ -11,12 +11,17 @@ function plotLandmarks(landmarks,varargin)
 % 14-Mar-2017
 
 % Key-value pair varargin
-keys = {'show_lines'}; default_values = {0};
-[show_lines] = parseKeyValuePairs(varargin,keys,default_values);
+keys = {'show_lines','hold_on'}; default_values = {0,0};
+[show_lines,hold_on] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Plot the landmarks for each shape
 n_shapes = size(landmarks,2);
-h = figure; hold on
+if hold_on
+    h = gcf;
+else
+    h = figure;
+end
+hold on
 try colors = parula(n_shapes);
 catch
     colors = hsv(n_shapes);
@@ -37,19 +42,12 @@ ax = plot(meanShape(1:2:end),meanShape(2:2:end),'ko',...
     'markersize',5,'linewidth',3,'markerfacecolor','k');
 
 % Connect dots on the face (optional)
-if show_lines
-    faceLabels = cell(7,1);
-    faceLabels{1} = 1:3;
-    faceLabels{2} = 4:6;
-    faceLabels{3} = 7:9;
-    faceLabels{4} = 10:12;
-    faceLabels{5} = 13:15;
-    faceLabels{6} = [16:19 16];
-    faceLabels{7} = 20;
+if show_lines    
+    faceLabels = getFaceRegions();
     
     mew = [meanShape(1:2:end) meanShape(2:2:end)];
     for i = 1:length(faceLabels)
-        plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'k-','linewidth',1)
+        plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'g-','linewidth',1)
     end
 end
 
