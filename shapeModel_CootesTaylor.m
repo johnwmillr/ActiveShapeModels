@@ -9,6 +9,14 @@
 % John W. Miller
 % 16-Feb-2017
 
+% Here's an annotated faces dataset:
+% http://personalpages.manchester.ac.uk/staff/timothy.f.cootes/data/bioid_points.html
+
+
+% Idea: use ASMs as a classifier of ILM (normal and swollen)
+% start by testing the classifier just between ILM and RPE (should be easy)
+
+
 %% Faces
 % Place landmarks
 % landmarks = placeLandmarks(pathToImages,20,10);
@@ -68,6 +76,9 @@ im_filt = imfilter(im,hFilt);
 im_gMag = imgradient(im_filt); % Image gradient
 figure, imshow(im_gMag,[])
 
+%% Multi-resolution
+% Roughly align mean shape to face in image using multi-resolution
+x_aligned = asm_multiResolution(im);
 
 %% Connect dots around the face
 faceRegions = getFaceRegions();
