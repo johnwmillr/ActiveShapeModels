@@ -1,3 +1,4 @@
+
 function plotLandmarks(landmarks,varargin)
 % PLOTLANDMARKS plots all of the aligned landmarks from an active shapes model
 %

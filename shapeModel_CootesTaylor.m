@@ -66,7 +66,7 @@ plotPrinComp(V,D,xBar,1)
 
 % Probably going to need to do some image processing to enhance edges in the images
 imDir = './Faces/faces_B';
-imFile = 'B_49_0.jpg';
+imFile = 'B_40_0.jpg';
 im = imread(fullfile(imDir,imFile));
 imshow(im), hold on
 plot(xBar(1:2:end),xBar(2:2:end),'ro','linewidth',2)
@@ -78,76 +78,10 @@ figure, imshow(im_gMag,[])
 
 %% Multi-resolution
 % Roughly align mean shape to face in image using multi-resolution
-x_aligned = asm_multiResolution(im);
-
-%% Connect dots around the face
-faceRegions = getFaceRegions();
+x_aligned = asm_multiResolution(im,alignedShapes);
 
 %% Loop through each landmark point, calculating the normal vector
-
-n_landmarks = length(xBar)/2;
-xy = [xBar(1:2:end) xBar(2:2:end)];
-R = [0 1; -1 0]; % Rotate 90 degrees
-
-% Adjustments along the normal (in image space)
-dX = zeros(2*n_landmarks); % {dX0, dY0, dX1 dY1, ..., dXn-1 dYn-1)
-
-% Plot the mean shape on image
-figure, imshow(im_gMag,[]), hold on
-for n = 1:n_landmarks,plot(xy(n,1),xy(n,2),'go','linewidth',2);end;
-
-for n = 1:n_landmarks        
-    if any(n==faceRegions{1})     % Left eye
-        [p0,p1,p2] = deal(xy(1,:),xy(n,:),xy(3,:));
-    elseif any(n==faceRegions{2}) % Right eye
-        [p0,p1,p2] = deal(xy(4,:),xy(n,:),xy(6,:));
-    elseif any(n==faceRegions{3}) % Left eyebrow
-        [p0,p1,p2] = deal(xy(7,:),xy(n,:),xy(9,:));
-    elseif any(n==faceRegions{4}) % Right eyebrow
-        [p0,p1,p2] = deal(xy(10,:),xy(n,:),xy(12,:));
-    elseif any(n==faceRegions{5}) % Nose
-        [p0,p1,p2] = deal(xy(13,:),xy(n,:),xy(15,:));
-    elseif any(n==faceRegions{6}) % Mouth
-        switch n
-            case 16
-                [p0,p1,p2] = deal(xy(19,:), xy(n,:),xy(n+1,:));
-            case 17
-                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
-            case 18
-                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(n+1,:));
-            case 19
-                [p0,p1,p2] = deal(xy(n-1,:),xy(n,:),xy(16,:));
-        end
-    elseif any(n==faceRegions{7}) % Chin
-        [p0,p1,p2] = deal(xy(16,:),xy(n,:),xy(18,:));
-    end
-                
-    % Normal vector
-    vNorm = (p2-p0)*R;
-    
-    % Point slope form of normal line through the current point
-    m = vNorm(2)/vNorm(1);
-    y = @(p1,m,x) (x-p1(1))*m+p1(2); % The output of this will be pixels (right?)
-
-    % Put the normal vector on the image
-    cols = 1:size(im,2);
-    rows = y(p1,m,cols);               
-    
-    mask_bad_cols = ~and(rows>1,rows<size(im,1));
-    rows(mask_bad_cols) = [];
-    cols(mask_bad_cols) = [];                            
-    
-    plot(cols,rows,'r.','linewidth',2)
-    
-    
-    % Identify max edge value along line            
-    pixels = im(round(rows),round(cols));
-    [val,idx] = max(pixels(:));    
-%     pause
-       
-    
-end
-
+asm_findFace(im,x_aligned);
 
 %%
 % After looping through each point and looking along the normal, we'll end up with a
