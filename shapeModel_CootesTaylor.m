@@ -33,19 +33,20 @@ end
 
 %% Create the shape model from the unaligned shapes
 shapeModel = buildShapeModel(allLandmarks,pathToImages);
-[xBar, eVectors, eVals] = deal(shapeModel.meanShape,shapeModel.eVectors,shapeModel.eValues);
 
 %% Create the gray-level 2D profile model
-grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel);
+grayModel = buildGrayLevelModel(pathToImages,shapeModel);
 
 %% Explore the shape model
-guiPrinComps(xBar,eVectors,eVals,'show_image',0) % Effect of PC weights on shape (GUI)
-plotPrinComp(eVectors,eVals,xBar,1) % Plot variations of the different PCs
+guiPrinComps(shapeModel,'show_image',0) % Effect of PC weights on shape (GUI)
+plotPrinComp(shapeModel,1) % Plot variations of the different PCs
 
 %% Edge detection using ASMs
-imDir = './Faces/faces_B';
-imFile = 'B_40_0.jpg';
+imDir = fullfile(projectDir,'Faces','faces_B');
+n_im = 40;
+imFile = sprintf('B_%02d_0.jpg',n_im);
 im = imread(fullfile(imDir,imFile));
+figure(3), hold on, imshow(im,[]), hold on
 
 %% Multi-resolution
 % Roughly align mean shape to face in image using multi-resolution

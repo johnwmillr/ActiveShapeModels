@@ -1,4 +1,4 @@
-function guiPrinComps(xBar,V,D,varargin)
+function guiPrinComps(shapeModel,varargin)
 % GUIPRINCOMPS
 %
 %	INPUT
@@ -11,8 +11,12 @@ function guiPrinComps(xBar,V,D,varargin)
 % John W. Miller
 % 17-Mar-2017
 
+
 keys = {'show_image'}; default_values = {0};
 [show_image] = parseKeyValuePairs(varargin,keys,default_values);
+
+% Extract stuff from model struct
+[xBar, V, D] = deal(shapeModel.meanShape,shapeModel.eVectors,shapeModel.eValues);
 
 % Initialization
 n_pcs = 3;
