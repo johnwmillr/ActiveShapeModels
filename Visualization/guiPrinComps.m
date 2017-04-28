@@ -39,15 +39,15 @@ P = V(:,1:n_pcs);
 shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
 
 % Generate an initial shape
-firstShape = generateShape();
+% firstShape = generateShape();
 
 %% Initial visualization
 f = figure();
 if show_image    
-    imDir = fullfile(fileparts(which(mfilename)),'/Faces/faces_B');
+    imDir = fullfile(fileparts(which(mfilename)),'..','Faces','faces_B');
     imFile = 'B_49_0.jpg';
     im = imread(fullfile(imDir,imFile));
-    imshow(im), hold on
+    xBar = placeShape(im,xBar);
 end
 
 % Determine mean shape and plot dimensions
@@ -103,7 +103,7 @@ b3 = uicontrol('Parent',f,'Style','slider','Position',[81,25,419,23],...
     end
 
     function updatePlot(newShape)
-        hold off
+        figure(f), hold off
         if show_image imshow(im), hold on, end
         for i = 1:length(faceRegions)
             plot(newShape(faceRegions{i},1),newShape(faceRegions{i},2), '.-','linewidth',2,'color','g'), hold on

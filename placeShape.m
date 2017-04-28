@@ -1,4 +1,4 @@
-function [x_aligned,h] = placeShape(im,x)
+function [x_aligned,f] = placeShape(im,x)
 % PLACESHAPE 
 %
 %	INPUT
@@ -12,7 +12,7 @@ function [x_aligned,h] = placeShape(im,x)
 % 21-Apr-2017
 
 % View the image
-figure, hold on
+f = figure; hold on
 imshow(im,[])
 text(0.1,0.9,'Click on center of nose.','fontsize',FS,'units','normalized','color','r')
 
@@ -28,6 +28,11 @@ x_aligned(2:2:end) = x_aligned(2:2:end)+J;
 
 % Display centered shape
 plotLandmarks(x_aligned,'show_lines',1,'hold',1)
-h = gcf;
+
+if nargout == 2    
+    return
+else
+    pause(1), close(f)
+end
 
 end % End of main
