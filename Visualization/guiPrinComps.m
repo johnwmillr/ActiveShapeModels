@@ -11,7 +11,7 @@ function guiPrinComps(shapeModel,varargin)
 % John W. Miller
 % 17-Mar-2017
 
-
+% Varargin
 keys = {'show_image'}; default_values = {0};
 [show_image] = parseKeyValuePairs(varargin,keys,default_values);
 

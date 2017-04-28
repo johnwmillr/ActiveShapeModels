@@ -1,4 +1,4 @@
-function x_aligned = placeShape(im,x)
+function [x_aligned,h] = placeShape(im,x)
 % PLACESHAPE 
 %
 %	INPUT
@@ -28,5 +28,6 @@ x_aligned(2:2:end) = x_aligned(2:2:end)+J;
 
 % Display centered shape
 plotLandmarks(x_aligned,'show_lines',1,'hold',1)
+h = gcf;
 
 end % End of main
