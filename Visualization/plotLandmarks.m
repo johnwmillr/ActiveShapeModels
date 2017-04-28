@@ -1,5 +1,4 @@
-
-function plotLandmarks(landmarks,varargin)
+function varargout = plotLandmarks(landmarks,varargin)
 % PLOTLANDMARKS plots all of the aligned landmarks from an active shapes model
 %
 %	INPUT
@@ -15,8 +14,8 @@ function plotLandmarks(landmarks,varargin)
 % 14-Mar-2017
 
 % Key-value pair varargin
-keys = {'show_lines','hold'}; default_values = {1,0};
-[show_lines,hold_on] = parseKeyValuePairs(varargin,keys,default_values);
+keys = {'show_lines','hold','color'}; default_values = {1,0,'m'};
+[show_lines,hold_on,line_color] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Plot the landmarks for each shape
 n_shapes = size(landmarks,2);
@@ -51,7 +50,7 @@ if show_lines
     
     mew = [meanShape(1:2:end) meanShape(2:2:end)];
     for i = 1:length(faceLabels)
-        plot(mew(faceLabels{i},1), mew(faceLabels{i},2), 'm-','linewidth',2)
+        mew_handle = plot(mew(faceLabels{i},1), mew(faceLabels{i},2),'-','color',line_color,'linewidth',2);
     end
 end
 
@@ -65,5 +64,11 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 axis off;
 set(gca,'YDir','reverse');
+drawnow
+
+% Varargout
+if nargout > 0
+    varargout{1} = mew_handle;
+end
 
 end % End of main
