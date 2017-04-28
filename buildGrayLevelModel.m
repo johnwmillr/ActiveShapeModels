@@ -10,12 +10,14 @@ function grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel)
 %
 % John W. Miller
 % 25-Apr-2017
+tic
 
 % Multi-resolution
-downsample_factors = [6 4 3 2];
+downsample_factors = [6 5 4 3 2];
+interp_step_sizes = 1*ones(size(downsample_factors));
 
-for n_resolution = 1:numel(downsample_factors)    
-    downsample_factor = downsample_factors(n_resolution);    
+for n_resolution = 1:numel(downsample_factors)
+    downsample_factor = downsample_factors(n_resolution);
     % Pre-allocation and stuff
     % Downsample the image and shape coordinates
     x_bar = shapeModel.meanShape./downsample_factor;
@@ -26,7 +28,7 @@ for n_resolution = 1:numel(downsample_factors)
     n_images = length(imFiles);
     
     % Sample a square region of pixels around each landmark
-    rc = 8; % Size of square (rc+1)
+    rc = 10; % Size of square (rc+1)
     if mod(rc,2)~=0;rc=rc+1;end
     
     % Convolution mask (for gradient of the square regions)
@@ -36,12 +38,12 @@ for n_resolution = 1:numel(downsample_factors)
     % Pre-allocate to store square profiles at each landmark
     n_landmarks = length(x_bar)/2;
     im_profiles = cell(n_landmarks,1); % One profile per landmark
-    for n_landmark = 1:n_landmarks
-        im_profiles{n_landmark} = zeros((rc-1)^2,n_images);
-    end
+%     for n_landmark = 1:n_landmarks
+%         im_profiles{n_landmark} = zeros((rc-1)^2,n_images);
+%     end
     
     % Filter for smoothing before measuring profile
-    [A,mew,sig] = deal(1,0,0.1);
+    [A,mew,sig] = deal(1,0,0.3);
     x_vals = (-3*sig+mew):0.1:(3*sig+mew);
     h_filt = A*exp(-((x_vals-mew).^2)./(2*sig^2));
     
@@ -60,14 +62,19 @@ for n_resolution = 1:numel(downsample_factors)
             iPixel = imageLandmarks(2*n_landmark+[-1 0],n_image); % Coordinates of current landmark
             
             % Interpolate the square around the pixel
-            step_size=1;
+            step_size = interp_step_sizes(n_resolution);
             [Xq,Yq] = meshgrid((iPixel(1)-rc/2):step_size:(iPixel(1)+rc/2),(iPixel(2)-rc/2):step_size:(iPixel(2)+rc/2));
-            im_region = interp2(double(im),Xq,Yq,'cubic');
+            im_region = interp2(double(im),Xq,Yq,'cubic'); % You could also put a scalar after 'cubic' to fill NaNs
+            if any(any(isnan(im_region)))
+                imr = reshape(im_region,numel(im_region),1);
+                imr(isnan(imr)) = nanmedian(imr);
+                im_region = reshape(imr,size(im_region,1),size(im_region,2));
+            end
             
             % Calculate the gradient for this region
             im_region_filt = conv2(im_region,kernel,'valid');
             abs_sum = sum(abs(im_region_filt(:)));
-            if abs_sum > 0.1 % (Don't divide by zero)
+            if abs_sum ~= 0
                 im_region_filt = im_region_filt./abs_sum;
             end
             
@@ -77,14 +84,14 @@ for n_resolution = 1:numel(downsample_factors)
             %         figure(1), hold on, plot(iPixel(1),iPixel(2),'ys'), hold on
             
             % Store as 1D vector
-            im_profile = reshape(im_region_filt,(rc-1)^2,1); % minus 1 b/c of 'valid' above
+            im_profile = reshape(im_region_filt,size(im_region_filt,1).^2,1); % minus 1 b/c of 'valid' above
             im_profiles{n_landmark}(:,n_image) = im_profile;
         end % Looping through landmarks
     end % Looping through images
     
     %% Build gray-level model for each landmark (using PCA) from all images
     % Covariance matrices (one per landmark)
-    [gBar,S,eVectors,eValues] = deal(cell(n_landmarks,1));
+    [gBar,S,eVectors,eValues] = deal(cell(n_landmarks,1)); % This deal might be slow
     for n_landmark = 1:n_landmarks
         gBar{n_landmark} = mean(im_profiles{n_landmark},2);
         S{n_landmark} = cov(im_profiles{n_landmark}'); % Must transpose here
@@ -97,18 +104,9 @@ for n_resolution = 1:numel(downsample_factors)
     %% Visualize the model (optional)
     view_model = 0;
     if view_model
-        n_landmark = 10;
+        n_landmark = 14;
         % Mean profile at a specific landmark
         figure,imshow(reshape(gBar{n_landmark},rc-1,rc-1),[])
-        
-        % Generate new profile
-        n_pcs = 5;
-        prof_mew = gBar{n_landmark};
-        P = eVectors{n_landmark}(:,1:n_pcs);
-        b = 0.1*ones(size(P,2),1);
-        prof_new = prof_mew + P*b;
-        figure,imshow(reshape(prof_new,rc-1,rc-1),[])
-        
     end
     
     %% Store in a struct
@@ -116,7 +114,7 @@ for n_resolution = 1:numel(downsample_factors)
         grayProfileModel(n_resolution,1) = struct(); %#ok<*AGROW>
     else
         grayProfileModel(n_resolution,1) = cell2struct(cell(length(fields(grayProfileModel)),1),fields(grayProfileModel),1);
-    end    
+    end
     
     % Populate the struct
     grayProfileModel(n_resolution).meanProfile = gBar;
@@ -125,9 +123,14 @@ for n_resolution = 1:numel(downsample_factors)
     grayProfileModel(n_resolution).eValues   = D;
     grayProfileModel(n_resolution).Info.n_images = n_images;
     grayProfileModel(n_resolution).Info.imageDir = pathToImages;
-    grayProfileModel(n_resolution).Info.n_downsample = downsample_factor;
+    grayProfileModel(n_resolution).Info.downsampleFactor = downsample_factor;
     grayProfileModel(n_resolution).Info.rc_squaresize = rc;
+    grayProfileModel(n_resolution).Info.SigmoidEQ = C;
+    grayProfileModel(n_resolution).Info.SmoothingFilter = h_filt;
+    grayProfileModel(n_resolution).Info.EdgeKernel = kernel;
+    grayProfileModel(n_resolution).Info.interp_step_size = interp_step_sizes(n_resolution);
     
-    fprintf('\nResolution: 1/%d. %d remaining.',downsample_factor,numel(downsample_factors)-n_resolution)
+    fprintf('\nResolution scale: 1/%d. %d remaining.',downsample_factor,numel(downsample_factors)-n_resolution)
 end % End looping through downsampling factors
+fprintf('\nAll done. Have a nice day!\n'), toc
 end % End of main

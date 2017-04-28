@@ -24,6 +24,9 @@ D = sort(diag(D),'descend');
 V = fliplr(V);
 
 % Store as struct
+
+%TODO: Do I need to account for resolution somehow with the eigenvectors and values?
+
 shapeModel = struct();
 shapeModel.meanShape = xBar;
 shapeModel.eVectors = V;
