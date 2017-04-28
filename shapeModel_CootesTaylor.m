@@ -20,11 +20,11 @@
 
 %% Add necessary paths
 projectDir = fullfile(go('iowa'),'ECE_7480_AdvancedDigitalImageProcessing','Project','Code');
-addpath(projectDir,fullfile(projectDir,'Utilities'),fullfile(projectDir,'Visualization'))
+addpath(projectDir,fullfile(projectDir,'Utilities'),fullfile(projectDir,'Visualization')), cd(projectDir)
 
 %% Place landmarks on images (or load them from disk)
 place_new_landmarks = 0;
-pathToImages = fullfile(projectDir,'Faces\faces_A_50');
+pathToImages = fullfile(projectDir,'Faces','faces_A_50');
 if place_new_landmarks
     allLandmarks = placeLandmarks(pathToImages,20,10);
 else
@@ -34,28 +34,27 @@ end
 %% Create the shape model from the unaligned shapes
 shapeModel = buildShapeModel(allLandmarks,pathToImages);
 
+%% Explore the shape model
+guiPrinComps(shapeModel,'show_image',1) % Effect of PC weights on shape (GUI)
+plotPrinComp(shapeModel,1) % Plot variations of the different PCs
+
 %% Create the gray-level 2D profile model
 grayModel = buildGrayLevelModel(pathToImages,shapeModel);
-
-%% Explore the shape model
-guiPrinComps(shapeModel,'show_image',0) % Effect of PC weights on shape (GUI)
-plotPrinComp(shapeModel,1) % Plot variations of the different PCs
 
 %% Edge detection using ASMs
 imDir = fullfile(projectDir,'Faces','faces_B');
 n_im = 40;
 imFile = sprintf('B_%02d_0.jpg',n_im);
 im = imread(fullfile(imDir,imFile));
-figure(3), hold on, imshow(im,[]), hold on
+figure(34), hold on, imshow(im,[]), hold on
 
 %% Multi-resolution
 % Roughly align mean shape to face in image using multi-resolution
 % x_aligned = asm_multiResolution(im,alignedShapes);
 x_aligned = placeShape(im,xBar);
 
-%% Loop through each landmark point, calculating the normal vector
-asm_findFace(im,x_aligned,eVectors,eVals,xBar);
-
+%% Find a face!
+findFace(im,shapeModel,grayModel)
 
 
 

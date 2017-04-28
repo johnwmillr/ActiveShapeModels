@@ -21,8 +21,8 @@ n_resolutions = length(grayModel);
 for n_resolution = 1:n_resolutions
     GM = grayModel(n_resolution);
     step_size=GM.Info.interp_step_size; % Interpolation step size (for im_region)
-            
-    % Gray-level profiles model    
+    
+    % Gray-level profiles model
     [gBar,S] = deal(GM.meanProfile, GM.covMatrix);
     
     % Smooth the image (Anti-aliasing?)
@@ -42,7 +42,7 @@ for n_resolution = 1:n_resolutions
     maxb=3*sqrt(D(1:n_pcs));
     
     % Sample a square region of pixels around each landmark
-    rc = GM.Info.rc_squaresize; % Size of square (rc+1)    
+    rc = GM.Info.rc_squaresize; % Size of square (rc+1)
     n_landmarks = length(x_bar)/2;
     
     % Convolution mask (for gradient of the square regions)
@@ -54,8 +54,8 @@ for n_resolution = 1:n_resolutions
     
     % Place mean shape over face (this should be done automatically)
     if n_resolution == 1
-        [x_original_estimate,h_im] = placeShape(im,x_bar);        
-        x_aligned = x_original_estimate;        
+        [x_original_estimate,h_im] = placeShape(im,x_bar);
+        x_aligned = x_original_estimate;
         x_current = x_aligned;
     else
         resolutionScale = grayModel(n_resolution-1).Info.downsampleFactor/downsampleFactor;
@@ -64,12 +64,14 @@ for n_resolution = 1:n_resolutions
         x_aligned = x_current; % Use the position determined from the lower resolution
         figure(h_im), hold off
         imshow(im,[]),plotLandmarks(x_aligned,'hold',1)
-    end    
+    end
     
     % Evolve estimate of face location, adjusting landmarks w/in model space
-    n_evolutions = 8;
+    n_evolutions = 5;
     for n_evolution = 1:n_evolutions;
-        x_suggested = zeros(size(x_aligned));        
+        title(sprintf('Downsample: 1/%d.\n%d remaining. Evolution %d/%d',...
+            downsampleFactor,n_resolutions-n_resolution,n_evolution,n_evolutions),'fontsize',FS)
+        x_suggested = zeros(size(x_aligned));
         
         for n_landmark = 1:n_landmarks
             %% Calculate 2D profiles near iPixel
@@ -84,7 +86,7 @@ for n_resolution = 1:n_resolutions
                 for r = -(xy/2):(xy/2)
                     n_shift = n_shift+1;
                     iPixel = iPixel_startingPosition+[r c]'; % Coordinates of current pixel
-%                     plot(iPixel(1),iPixel(2),'bs'), hold on
+                    %                     plot(iPixel(1),iPixel(2),'bs'), hold on
                     
                     % Interpolate the square around the pixel
                     [Xq,Yq] = meshgrid((iPixel(1)-rc/2):step_size:(iPixel(1)+rc/2),(iPixel(2)-rc/2):step_size:(iPixel(2)+rc/2));
@@ -124,7 +126,7 @@ for n_resolution = 1:n_resolutions
                     elseif md < md_min
                         md_min = md;
                         best_pixel = iPixel';
-%                         plot(iPixel(1),iPixel(2),'g.')
+                        %                         plot(iPixel(1),iPixel(2),'g.')
                     end
                 end
             end % End shifting square grid around iPixel
@@ -141,7 +143,7 @@ for n_resolution = 1:n_resolutions
             %         suggested_shifts(2.*n_landmark+[-1 0]) = iShift;
             %         x_suggested(2.*n_landmark+[-1 0]) = iPixel'+iShift;
             x_suggested(2.*n_landmark+[-1 0]) = best_pixel;
-%             plot(best_pixel(1),best_pixel(2),'y.')
+            %             plot(best_pixel(1),best_pixel(2),'y.')
             
         end % Looping through landmarks
         
@@ -152,7 +154,7 @@ for n_resolution = 1:n_resolutions
         % Determine weights to adjust shape w/in model space
         % TODO: Do I somehow need to account for resolution scaling w/ the
         % eigenvectors and values?
-        b = P'*(x_current-x_original_estimate); % What should the subtraction be between?
+        b = P'*(x_current-x_aligned); % What should the subtraction be between?
         dx = x_posed-x_current;
         db = P'*dx;
         b = b+db;
@@ -168,8 +170,7 @@ for n_resolution = 1:n_resolutions
         x_new = x_aligned + P*(b);
         x_current = x_new; % Update the current shape position
         
-        hold off, imshow(im,[])
-        plotLandmarks(x_new,'hold',1), hold on
+        imshow(im,[]), plotLandmarks(x_new,'hold',1)
     end % End looping through evolutions
     
 end % End looping through resolution levels
@@ -183,5 +184,6 @@ figure(gcf), hold off, imshow(im_original,[])
 h_orig  = plotLandmarks(x_original_estimate,'hold',1);
 h_final = plotLandmarks(x_final,'hold',1,'color','g');
 legend([h_orig,h_final],{'Original','Final'},'location','nw','fontsize',FS)
+title('Final shape','fontsize',FS)
 
 end % End of main
