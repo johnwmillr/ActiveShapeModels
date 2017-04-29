@@ -1,4 +1,4 @@
-function [x_aligned,h] = asm_multiResolution(im_original,xBar,h_filt)
+function [x_aligned, h] = asm_multiResolution(im_original,xBar,h_filt)
 % ASM_MULTIRESOLUTION 
 %
 %	INPUT
@@ -10,13 +10,6 @@ function [x_aligned,h] = asm_multiResolution(im_original,xBar,h_filt)
 %
 % John W. Miller
 % 12-Apr-2017
-
-% impyramid()
-
-%%
-% imDir = './Faces/faces_B';
-% imFile = 'B_40_0.jpg';
-% im_original = imread(fullfile(imDir,imFile));
 
 % Filter (smooth image)
 if nargin < 3
@@ -44,10 +37,7 @@ hair_response(end-rc:end,:) = 0;
 [I,J] = ind2sub(size(im),idx);
 
 % Determine where to place mean shape
-%figure, imshow(im_original,[]), hold on
-% plot(J*n,I*n,'ro')
 I = I + round(size(hair_shape,2)/2.5); % KLUDGE (try to move from hair to eyes)
-%plot(J*n,I*n,'ro')
 
 [x1,y1] = deal(xBar(17),xBar(18));
 [x2,y2] = deal(xBar(19),xBar(20));
@@ -60,7 +50,7 @@ x_aligned(1:2:end) = x_aligned(1:2:end) + J*n; % Scale back up the detected regi
 x_aligned(2:2:end) = x_aligned(2:2:end) + I*n;
 
 % Add mean shape to image
-figure, imshow(im_original,[])
-h = plotLandmarks(x_aligned,'show_lines',1,'hold',1);
+h = figure;imshow(im_original,[])
+plotLandmarks(x_aligned,'show_lines',1,'hold',1);
 
 end % End of main
