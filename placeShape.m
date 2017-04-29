@@ -12,8 +12,8 @@ function [x_aligned, f] = placeShape(im,x)
 % 21-Apr-2017
 
 % View the image
-f = figure; hold on
-imshow(im,[])
+f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+hold on, imshow(im,[],'InitialMagnification','fit')
 text(0.1,0.9,'Click on center of nose.','fontsize',FS,'units','normalized','color','r')
 
 % Get input from user
@@ -28,6 +28,7 @@ x_aligned(2:2:end) = x_aligned(2:2:end)+J;
 
 % Display centered shape
 plotLandmarks(x_aligned,'show_lines',1,'hold',1)
+
 
 % Varargout
 if nargout == 2 % User wants the figure handle

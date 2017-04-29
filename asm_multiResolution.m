@@ -1,4 +1,4 @@
-function [x_aligned, h] = asm_multiResolution(im_original,xBar,h_filt)
+function [x_aligned, f] = asm_multiResolution(im_original,xBar,h_filt)
 % ASM_MULTIRESOLUTION 
 %
 %	INPUT
@@ -50,7 +50,8 @@ x_aligned(1:2:end) = x_aligned(1:2:end) + J*n; % Scale back up the detected regi
 x_aligned(2:2:end) = x_aligned(2:2:end) + I*n;
 
 % Add mean shape to image
-h = figure;imshow(im_original,[])
+f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+hold on, imshow(im_original,[],'InitialMagnification','fit')
 plotLandmarks(x_aligned,'show_lines',1,'hold',1);
 
 end % End of main
