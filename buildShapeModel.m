@@ -11,10 +11,14 @@ function shapeModel = buildShapeModel(unalignedShapes,pathToTrainingImages)
 %       V: Eigenvectors (decreasing energy)
 %       D: Eigenvalues  (decreasing energy)
 %
+% TODO: Do I need to account for resolution somehow with the eigenvectors and values?
+%
 % John W. Miller
 % 25-Apr-2017
 
-x = alignShapes(unalignedShapes,0);
+% Align shapes from training images using Procrustes
+scaling = 0; % Yes or no, remove scale differences between training images
+x = alignShapes(unalignedShapes,scaling);
 
 % Use PCA to create model
 xBar = mean(x,2);  % Mean shape
@@ -23,10 +27,7 @@ S = cov(x');       % Covariance matrix
 D = sort(diag(D),'descend');
 V = fliplr(V);
 
-% Store as struct
-
-%TODO: Do I need to account for resolution somehow with the eigenvectors and values?
-
+% Store model as a struct
 shapeModel = struct();
 shapeModel.meanShape = xBar;
 shapeModel.eVectors = V;

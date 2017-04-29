@@ -19,13 +19,13 @@ function grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel)
 tic
 
 % Multi-resolution
-downsample_factors = 4:-1:2;
+downsample_factors = 6:-1:2;
 n_resolutions = numel(downsample_factors);
 
 % Change patterns based on resolution
 interp_step_sizes = 1*ones(n_resolutions,1); % Probably just leave this as 1
 filter_sigs = linspace(0.6,0.3,n_resolutions);
-region_size = linspace(8,3,n_resolutions);
+region_size = linspace(10,3,n_resolutions);
 
 % Build a 2D gray-level profile for each landmark at each resolution
 for n_resolution = 1:n_resolutions

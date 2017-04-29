@@ -1,4 +1,4 @@
-function [alignedShapes, avgDiff] = alignShapes(allShapes, scaling)
+function alignedShapes = alignShapes(allShapes, scaling)
 % ALIGNSHAPES uses Procrustes analysis to align a set of shapes (with or without
 % scaling).
 %
@@ -10,7 +10,6 @@ function [alignedShapes, avgDiff] = alignShapes(allShapes, scaling)
 %
 %	OUTPUT
 %       alignedShapes: The realigned shapes. Same shape as totalShapes
-%       avgDiff: The average difference (error?) between each shape and the mean shape
 %
 %   Shape analysis techniques based on this paper:
 %   Cootes, T. F., Taylor, C. J., Cooper, D. H., & Graham, J. (1995).
@@ -25,7 +24,6 @@ function [alignedShapes, avgDiff] = alignShapes(allShapes, scaling)
 % Pre-allocate
 n_shapes = size(allShapes,2);
 alignedShapes = zeros(size(allShapes));
-totalDiff = 0;
 
 % Mean shape across all subjects (assuming each shape in totalShapes is a different subj)
 meanShape = mean(allShapes,2); % x1, y1, x2, y2, ..., x20, y20
@@ -37,15 +35,11 @@ for n_shape = 1:n_shapes
     iShape = [allShapes(1:2:end,n_shape) allShapes(2:2:end,n_shape)];
     
     % Do the Procrustes alignment
-    [d, iShapeAligned] = procrustes(meanShape,iShape,'scaling',scaling,'reflection','best');
-    totalDiff = totalDiff + d; % Total difference between iShape and the mean
+    [~, iShapeAligned] = procrustes(meanShape,iShape,'scaling',scaling,'reflection','best');
     
     % Store the aligned shape in a similar manner as how totalShapes is passed in            
     alignedShapes(1:2:end,n_shape) = iShapeAligned(:,1)';
     alignedShapes(2:2:end,n_shape) = iShapeAligned(:,2)';            
 end
-
-% On average, how far off was each shape from the mean shape?
-avgDiff = totalDiff/n_shapes;
 
 end % End of main

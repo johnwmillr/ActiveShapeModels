@@ -7,15 +7,15 @@ function varargout = findFace(im_original,shapeModel,grayModel)
 %
 %	OUTPUT
 %
-%   TODO: Add varargin for selecting parameters (e.g. dist_metric)
+%   TODO: Add varargin for selecting parameters (e.g. dist_metric, n_evolutions, etc.)
 %
 % John W. Miller
 % 25-Apr-2017
 
+% The initial placement has to be very close to the center of the face...
+
 % Use Mahalanobis distance or gray-level PCA space for search?
 dist_metric = 'pca'; % Options: 'maha' or 'pca'
-
-% The initial placement has to be very close to the center of the face...
 
 % Inverse of covariance matrix sometimes badly scaled
 warning('off','MATLAB:nearlySingularMatrix');
@@ -36,10 +36,8 @@ for n_resolution = 1:n_resolutions
     
     % Downsample everything that needs to be downsampled
     downsampleFactor = GM.Info.downsampleFactor;
-    im = imresize(im,1/downsampleFactor);           % Resize image
-    x_mean = shapeModel.meanShape./downsampleFactor;                % Resize mean shape
-    %         V = V./downsampleFactor;    % Is this a legit method for downsampling V and D?
-    %         D = D./downsampleFactor;
+    im = imresize(im,1/downsampleFactor);            % Resize image
+    x_mean = shapeModel.meanShape./downsampleFactor; % Resize mean shape    
     
     % Gray-level profiles model
     [g_mean, g_S, g_eVecs, g_eVals] = deal(GM.meanProfile, GM.covMatrix, GM.eVectors, GM.eValues);
@@ -62,7 +60,7 @@ for n_resolution = 1:n_resolutions
     
     % Place mean shape over face (this should be done automatically)
     if n_resolution == 1
-        [x_original_estimate,h_im] = placeShape(im,x_mean);
+        [x_original_estimate,T_model_to_image, h_im] = placeShape(im,x_mean);
         %         [x_original_estimate] = asm_multiResolution(im,x_mean,GM.Info.SmoothingFilter);
         h_im = gcf; % I should be able to use h_im from above, there is a weird error
         x_aligned = x_original_estimate;
@@ -77,7 +75,7 @@ for n_resolution = 1:n_resolutions
     end
     
     % Evolve estimate of face location, adjusting landmarks w/in model space
-    n_evolutions = 5;
+    n_evolutions = 4;
     for n_evolution = 1:n_evolutions;
         title(sprintf('Downsample: 1/%d. %d remaining.\nEvolution %d/%d',...
             downsampleFactor,n_resolutions-n_resolution,n_evolution,n_evolutions),'fontsize',FS), drawnow('expose')
@@ -96,7 +94,7 @@ for n_resolution = 1:n_resolutions
             % Shift the 2D profile around the current landmark
             for c = -(search_size/2):(search_size/2)
                 for r = -(search_size/2):(search_size/2)
-                    n_shift = n_shift+1; g_new = [];
+                    n_shift = n_shift+1;
                     iPixel = iPixel_startingPosition+[r c]'; % Coordinates of current pixel
 %                     plot(iPixel(1),iPixel(2),'bs'), hold on
                     
@@ -119,7 +117,7 @@ for n_resolution = 1:n_resolutions
                     % Sigmoid equalization
                     im_region_filt = im_region_filt./(abs(im_region_filt)+C);
                     
-                    % Store 2D profile as a 1D vector
+                    % Store the current 2D profile as a 1D vector
                     g_new = reshape(im_region_filt,size(im_region_filt,1).^2,1);
                     
                     % Compute the 'distance' from the current profile to the mean profile                    
@@ -163,47 +161,30 @@ for n_resolution = 1:n_resolutions
             
         end % Looping through landmarks
         
-        %% Remove translation, rotation, and scaling (pose parameters)
-        % from suggested shape. In other words, we're using Procrustes to project the
-        % suggested shape from image space into the shape model space, allowing us to
-        % subtract between the two. We will project back to the image space at the
-        % end of this loop.
+        % Update pose parameters towards suggested shape
+        xs = [x_suggested(1:2:end) x_suggested(2:2:end)]; xc = [x_current(1:2:end) x_current(2:2:end)];        
+        [~,xp] = procrustes(xs,xc);        
+        x_posed = zeros(size(x_mean));
+        x_posed(1:2:end) = xp(:,1);
+        x_posed(2:2:end) = xp(:,2);
         
-        % Need to change array dimensions for transformation
-        xm = [x_mean(1:2:end) x_mean(2:2:end)]; xs = [x_suggested(1:2:end) x_suggested(2:2:end)];
+        % Deform shape towards suggested points        
+        b_suggested = P'*(x_posed-x_mean);
+        b=max(min(b_suggested,maxb),-maxb); % Keep adjustments within model limits
         
-        % Remove pose parameters from suggested shape
-        [~, xs, T_image_to_shape] = procrustes(xm,xs);
-        x_suggested_pose_removed = zeros(size(x_mean));
-        x_suggested_pose_removed(1:2:end) = xs(:,1); x_suggested_pose_removed(2:2:end) = xs(:,2);
+        % Generate new shape (within model space)
+        x_new = x_mean + P*b;
         
-        % Determine weights to adjust shape w/in model space
-        % TODO: Do I somehow need to account for resolution scaling w/ the
-        % eigenvectors and values?
-        b = P'*(x_suggested_pose_removed-x_mean); % What should the subtraction be between?
-        %         [~,xc] = procrustes(x_mean,x_current);
-        %         dx = x_current-x_suggested_pose_removed;
-        dx = x_mean-x_suggested_pose_removed;
-        db = P'*dx;
-        b = b+db;
-        
-        % Limit the model parameters based on what is considered a nomal
-        % contour, using the eigenvalues of the PCA-model
-        b=max(min(b,maxb),-maxb);
-        
-        % Generate new shape within constraints of model
-        %Wb = diag(D); % Eq. 26 (can also just be identity)
-        x_new = x_mean + P*(b);
-        
-        % Restore the pose parameters
-        xn = [x_new(1:2:end) x_new(2:2:end)];
-        xn = xn./T_image_to_shape.b/T_image_to_shape.T - T_image_to_shape.c;
+        % Transfer x_new to image space (for some reason we need to change the array size)        
+        xn = [x_new(1:2:end) x_new(2:2:end)];                        
+        [~,xn] = procrustes(xs,xn);
         x_new = zeros(size(x_mean));
-        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);
-        x_current = x_new; % Update the current shape position
+        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);                
+        x_current = x_new;
         
-        imshow(im,[]), plotLandmarks(x_current,'hold',1), hold on
-        plot(x_suggested(1:2:end),x_suggested(2:2:end),'ro','linewidth',2)
+        % View the current evolution
+        imshow(im,[]), plotLandmarks(x_current,'hold',1), hold on        
+        plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',2)
     end % End looping through evolutions
 end % End looping through resolution levels
 

@@ -43,14 +43,14 @@ grayModel = buildGrayLevelModel(pathToImages,shapeModel);
 
 %% Edge detection using ASMs
 imDir = fullfile(projectDir,'Faces','faces_B');
-n_im = 40;
+n_im = 35;
 imFile = sprintf('B_%02d_0.jpg',n_im);
 im = imread(fullfile(imDir,imFile));
 figure(34), hold on, imshow(im,[]), hold on
 
 %% Multi-resolution
 % Roughly align mean shape to face in image using multi-resolution
-% x_aligned = asm_multiResolution(im,alignedShapes);
+% x_aligned = asm_multiResolution(im,shapeModel.meanShape);
 x_aligned = placeShape(im,xBar);
 
 %% Find a face!
