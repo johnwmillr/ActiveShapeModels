@@ -1,4 +1,4 @@
-function [x_aligned,f] = placeShape(im,x)
+function [x_aligned, varargout] = placeShape(im,x)
 % PLACESHAPE 
 %
 %	INPUT
@@ -26,13 +26,25 @@ x_aligned(2:2:end) = x_aligned(2:2:end)-x(28);
 x_aligned(1:2:end) = x_aligned(1:2:end)+I;
 x_aligned(2:2:end) = x_aligned(2:2:end)+J;
 
+% Calculate transform from model space to image space (this may not be useful)
+xa = [x_aligned(1:2:end) x_aligned(2:2:end)];
+xo = [x(1:2:end) x(2:2:end)];
+[~,~,T_model_to_image] = procrustes(xa,xo); 
+
 % Display centered shape
 plotLandmarks(x_aligned,'show_lines',1,'hold',1)
 
-if nargout == 2    
+% Varargout
+if nargout == 2
+    varargout{1} = T_model_to_image;
+elseif nargout == 3
+    varargout{1} = T_model_to_image;
+    varargout{2} = f;
     return
-else
-    pause(1), close(f)
+end
+
+if nargout ~= 3
+    pause(1), close(f)    
 end
 
 end % End of main

@@ -64,6 +64,7 @@ pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 axis off;
 set(gca,'YDir','reverse');
+% drawnow('expose') % not sure if I need 'expose' or not.
 drawnow
 
 % Varargout
