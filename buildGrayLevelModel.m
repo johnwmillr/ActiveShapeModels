@@ -8,15 +8,27 @@ function grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel)
 %	OUTPUT
 %       grayProfileModel: (struct) Contains all ya need for the model.
 %
+%
+%   TODO: Make the process for getting gray-level info its own function, so it can be
+%   called during the search process for new images (right now I'm repeating code)
+%
+%   TODO: Add varargin to specify model parameters (e.g. resolution, filter, etc.)
+%
 % John W. Miller
 % 25-Apr-2017
 tic
 
 % Multi-resolution
-downsample_factors = [6 5 4 3 2];
-interp_step_sizes = 1*ones(size(downsample_factors));
+downsample_factors = 4:-1:2;
+n_resolutions = numel(downsample_factors);
 
-for n_resolution = 1:numel(downsample_factors)
+% Change patterns based on resolution
+interp_step_sizes = 1*ones(n_resolutions,1); % Probably just leave this as 1
+filter_sigs = linspace(0.6,0.3,n_resolutions);
+region_size = linspace(8,3,n_resolutions);
+
+% Build a 2D gray-level profile for each landmark at each resolution
+for n_resolution = 1:n_resolutions
     downsample_factor = downsample_factors(n_resolution);
     % Pre-allocation and stuff
     % Downsample the image and shape coordinates
@@ -28,7 +40,7 @@ for n_resolution = 1:numel(downsample_factors)
     n_images = length(imFiles);
     
     % Sample a square region of pixels around each landmark
-    rc = 10; % Size of square (rc+1)
+    rc = region_size(n_resolution); % Size of square (rc+1)
     if mod(rc,2)~=0;rc=rc+1;end
     
     % Convolution mask (for gradient of the square regions)
@@ -38,12 +50,9 @@ for n_resolution = 1:numel(downsample_factors)
     % Pre-allocate to store square profiles at each landmark
     n_landmarks = length(x_bar)/2;
     im_profiles = cell(n_landmarks,1); % One profile per landmark
-%     for n_landmark = 1:n_landmarks
-%         im_profiles{n_landmark} = zeros((rc-1)^2,n_images);
-%     end
     
     % Filter for smoothing before measuring profile
-    [A,mew,sig] = deal(1,0,0.3);
+    [A,mew,sig] = deal(1,0,filter_sigs(n_resolution)); % Increase sig for more smoothing
     x_vals = (-3*sig+mew):0.1:(3*sig+mew);
     h_filt = A*exp(-((x_vals-mew).^2)./(2*sig^2));
     
@@ -64,7 +73,8 @@ for n_resolution = 1:numel(downsample_factors)
             % Interpolate the square around the pixel
             step_size = interp_step_sizes(n_resolution);
             [Xq,Yq] = meshgrid((iPixel(1)-rc/2):step_size:(iPixel(1)+rc/2),(iPixel(2)-rc/2):step_size:(iPixel(2)+rc/2));
-            im_region = interp2(double(im),Xq,Yq,'cubic'); % You could also put a scalar after 'cubic' to fill NaNs
+%             im_region = interp2(double(im),Xq,Yq,'cubic'); % You could also put a scalar after 'cubic' to fill NaNs
+            im_region = interp2(im2double(im),Xq,Yq,'cubic'); % You could also put a scalar after 'cubic' to fill NaNs
             if any(any(isnan(im_region)))
                 imr = reshape(im_region,numel(im_region),1);
                 imr(isnan(imr)) = nanmedian(imr);
@@ -119,8 +129,8 @@ for n_resolution = 1:numel(downsample_factors)
     % Populate the struct
     grayProfileModel(n_resolution).meanProfile = gBar;
     grayProfileModel(n_resolution).covMatrix = S;
-    grayProfileModel(n_resolution).eVectors  = V;
-    grayProfileModel(n_resolution).eValues   = D;
+    grayProfileModel(n_resolution).eVectors  = eVectors;
+    grayProfileModel(n_resolution).eValues   = eValues;
     grayProfileModel(n_resolution).Info.n_images = n_images;
     grayProfileModel(n_resolution).Info.imageDir = pathToImages;
     grayProfileModel(n_resolution).Info.downsampleFactor = downsample_factor;
