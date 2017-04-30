@@ -56,13 +56,14 @@ else
     % grayModel is a 4x1 ([n_resolutions x 1]) struct containing the gray-level
     % gradient information for each of the training images at each resolution for
     % each landmark making up the face shape.
-    disp('Loading the gray-level model...')
-    load(fullfile(project_dir,'SavedModels','grayModel_Example_FindFace'));
+    fprintf('\nLoading the gray-level model...')
+    load(fullfile(project_dir,'SavedModels','grayModel_Example_FindFace')); fprintf(' Done loading.\n')
 end
 
 %% Load the example face
 im = imread(fullfile(project_dir,'Faces','Face.jpg')); close all
 
 %% Find a face!
+disp('Finding a face...')
 findFace(im,shapeModel,grayModel)
 
