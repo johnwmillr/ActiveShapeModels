@@ -44,8 +44,8 @@ shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
 %% Initial visualization
 f = figure();
 if show_image    
-    imDir = fullfile(fileparts(which(mfilename)),'..','Faces','faces_B');
-    imFile = 'B_49_0.jpg';
+    imDir = fullfile(fileparts(which(mfilename)),'..','Faces');
+    imFile = 'Face_01.jpg';
     im = imread(fullfile(imDir,imFile));
     xBar = placeShape(im,xBar);
 end
