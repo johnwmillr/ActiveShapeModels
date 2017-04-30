@@ -1,5 +1,7 @@
 Use active shape models from Cootes et al. to locate faces in images.
 
+After cloning this repository, run the [Example_FindFace](Example_FindFace.m) script for a walkthrough demonstration of how to use this ASM code for locating a face in an example image.
+
 Here is the original [Cootes et al. paper.](http://www.sciencedirect.com/science/article/pii/S1077314285710041) PDFs of the paper are available elsewhere online if you don't have access to the journal.
 
 Here is a link to the [faces training set](http://robotics.csie.ncku.edu.tw/Databases/FaceDetect_PoseEstimate.htm#Our_Database_) I annonated to train my model.
