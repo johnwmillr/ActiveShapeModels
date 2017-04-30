@@ -18,6 +18,8 @@
 % Idea: use ASMs as a classifier of ILM (normal and swollen)
 % start by testing the classifier just between ILM and RPE (should be easy)
 
+% TODO: Add one face image to GitHub so people can try it all on their own
+
 %% Add necessary paths
 projectDir = fullfile(go('iowa'),'ECE_7480_AdvancedDigitalImageProcessing','Project','Code');
 addpath(projectDir,fullfile(projectDir,'Utilities'),fullfile(projectDir,'Visualization')), cd(projectDir)
@@ -41,19 +43,16 @@ plotPrinComp(shapeModel,1) % Plot variations of the different PCs
 %% Create the gray-level 2D profile model
 grayModel = buildGrayLevelModel(pathToImages,shapeModel);
 
-%% Edge detection using ASMs
+%% Explore the gray model
+% TODO: this.
+
+%% Pick a face image
 imDir = fullfile(projectDir,'Faces','faces_B');
-n_im = 35;
+imDir = fullfile(projectDir,'Faces');
 imFile = sprintf('B_%02d_0.jpg',n_im);
 im = imread(fullfile(imDir,imFile));
-figure(34), hold on, imshow(im,[]), hold on
 
-%% Multi-resolution
-% Roughly align mean shape to face in image using multi-resolution
-% x_aligned = asm_multiResolution(im,shapeModel.meanShape);
-x_aligned = placeShape(im,xBar);
-
-%% Find a face!
+% Find a face!
 findFace(im,shapeModel,grayModel)
 
 

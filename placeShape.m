@@ -14,7 +14,7 @@ function [x_aligned, f] = placeShape(im,x)
 % View the image
 f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
 hold on, imshow(im,[],'InitialMagnification','fit')
-text(0.1,0.9,'Click on center of nose.','fontsize',FS,'units','normalized','color','r')
+text(0.1,0.9,'Click on center of nose. Or close by. Test your luck.','fontsize',FS,'units','normalized','color','r')
 
 % Get input from user
 [I,J] = ginput(1);
