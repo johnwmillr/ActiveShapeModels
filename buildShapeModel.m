@@ -17,7 +17,7 @@ function shapeModel = buildShapeModel(unalignedShapes,pathToTrainingImages)
 % 25-Apr-2017
 
 % Align shapes from training images using Procrustes
-scaling = 0; % Yes or no, remove scale differences between training images
+scaling = 0; % Almost always best to set scaling to 0
 x = alignShapes(unalignedShapes,scaling);
 
 % Use PCA to create model
@@ -34,7 +34,9 @@ shapeModel.eVectors = V;
 shapeModel.eValues  = D;
 shapeModel.alignedShapes = x;
 shapeModel.unalignedShapes = unalignedShapes;
-shapeModel.trainingImages = pathToTrainingImages;
+if nargin > 1
+    shapeModel.trainingImages = pathToTrainingImages;
+end
 shapeModel.n_shapes = size(x,2);
 
 end % End of main

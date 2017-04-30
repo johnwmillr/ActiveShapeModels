@@ -1,4 +1,4 @@
-function grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel)
+function grayModel = buildGrayLevelModel(pathToImages,shapeModel,varargin)
 % BUILDGRAYLEVELMODEL
 %
 %	INPUT
@@ -13,19 +13,32 @@ function grayProfileModel = buildGrayLevelModel(pathToImages,shapeModel)
 %   called during the search process for new images (right now I'm repeating code)
 %
 %   TODO: Add varargin to specify model parameters (e.g. resolution, filter, etc.)
+%   TODO: Add ability to save a model to disk once it's trained
 %
 % John W. Miller
 % 25-Apr-2017
 tic
 
+% Key-value pair varargin
+keys = {'save_model','resolutions'}; default_values = {0,6:-1:3};
+[save_model, downsample_factors] = parseKeyValuePairs(varargin,keys,default_values);
+
+if save_model
+    fprintf('\n\n')
+    save_name = ['grayModel_' input('Save name? grayModel_','s') '.mat'];
+    save_dir = fullfile(fileparts(mfilename),'SavedModels');
+    disp('Saving file...')
+end
+
 % Multi-resolution
-downsample_factors = 6:-1:2;
 n_resolutions = numel(downsample_factors);
 
-% Change patterns based on resolution
+% Change parameters based on resolution
 interp_step_sizes = 1*ones(n_resolutions,1); % Probably just leave this as 1
-filter_sigs = linspace(0.6,0.3,n_resolutions);
-region_size = linspace(10,3,n_resolutions);
+
+% These model parameters are very important.
+filter_sigs = linspace(0.8,0.35,n_resolutions); % Should go from about 0.8 to 0.3
+region_size = linspace(10,4,n_resolutions);     % Should go from about 20 to 5
 
 % Build a 2D gray-level profile for each landmark at each resolution
 for n_resolution = 1:n_resolutions
@@ -121,26 +134,32 @@ for n_resolution = 1:n_resolutions
     
     %% Store in a struct
     if n_resolution == 1
-        grayProfileModel(n_resolution,1) = struct(); %#ok<*AGROW>
+        grayModel(n_resolution,1) = struct(); %#ok<*AGROW>
     else
-        grayProfileModel(n_resolution,1) = cell2struct(cell(length(fields(grayProfileModel)),1),fields(grayProfileModel),1);
+        grayModel(n_resolution,1) = cell2struct(cell(length(fields(grayModel)),1),fields(grayModel),1);
     end
     
     % Populate the struct
-    grayProfileModel(n_resolution).meanProfile = gBar;
-    grayProfileModel(n_resolution).covMatrix = S;
-    grayProfileModel(n_resolution).eVectors  = eVectors;
-    grayProfileModel(n_resolution).eValues   = eValues;
-    grayProfileModel(n_resolution).Info.n_images = n_images;
-    grayProfileModel(n_resolution).Info.imageDir = pathToImages;
-    grayProfileModel(n_resolution).Info.downsampleFactor = downsample_factor;
-    grayProfileModel(n_resolution).Info.rc_squaresize = rc;
-    grayProfileModel(n_resolution).Info.SigmoidEQ = C;
-    grayProfileModel(n_resolution).Info.SmoothingFilter = h_filt;
-    grayProfileModel(n_resolution).Info.EdgeKernel = kernel;
-    grayProfileModel(n_resolution).Info.interp_step_size = interp_step_sizes(n_resolution);
+    grayModel(n_resolution).meanProfile = gBar;
+    grayModel(n_resolution).covMatrix = S;
+    grayModel(n_resolution).eVectors  = eVectors;
+    grayModel(n_resolution).eValues   = eValues;
+    grayModel(n_resolution).Info.n_images = n_images;
+    grayModel(n_resolution).Info.imageDir = pathToImages;
+    grayModel(n_resolution).Info.downsampleFactor = downsample_factor;
+    grayModel(n_resolution).Info.rc_squaresize = rc;
+    grayModel(n_resolution).Info.SigmoidEQ = C;
+    grayModel(n_resolution).Info.SmoothingFilter = h_filt;
+    grayModel(n_resolution).Info.EdgeKernel = kernel;
+    grayModel(n_resolution).Info.interp_step_size = interp_step_sizes(n_resolution);
     
     fprintf('\nResolution scale: 1/%d. %d remaining.',downsample_factor,numel(downsample_factors)-n_resolution)
-end % End looping through downsampling factors
-fprintf('\nAll done. Have a nice day!\n'), toc
+end, toc % End looping through downsampling factors
+
+% Save the model (optional)
+if save_model
+    save(fullfile(save_dir,save_name),'grayModel');
+end
+
+fprintf('\nAll done. Have a nice day!\n')
 end % End of main

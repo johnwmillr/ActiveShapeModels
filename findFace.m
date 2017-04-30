@@ -12,8 +12,6 @@ function varargout = findFace(im_original,shapeModel,grayModel)
 % John W. Miller
 % 25-Apr-2017
 
-% The initial placement has to be very close to the center of the face...
-
 % Use Mahalanobis distance or gray-level PCA space for search?
 dist_metric = 'pca'; % Options: 'maha' or 'pca'
 
@@ -37,7 +35,7 @@ for n_resolution = 1:n_resolutions
     % Downsample everything that needs to be downsampled
     downsampleFactor = GM.Info.downsampleFactor;
     im = imresize(im,1/downsampleFactor);            % Resize image
-    x_mean = shapeModel.meanShape./downsampleFactor; % Resize mean shape    
+    x_mean = shapeModel.meanShape./downsampleFactor; % Resize mean shape
     
     % Gray-level profiles model
     [g_mean, g_S, g_eVecs, g_eVals] = deal(GM.meanProfile, GM.covMatrix, GM.eVectors, GM.eValues);
@@ -60,9 +58,9 @@ for n_resolution = 1:n_resolutions
     
     % Place mean shape over face (this should be done automatically)
     if n_resolution == 1
-        [x_original_estimate,T_model_to_image, h_im] = placeShape(im,x_mean);
-        %         [x_original_estimate] = asm_multiResolution(im,x_mean,GM.Info.SmoothingFilter);
-        h_im = gcf; % I should be able to use h_im from above, there is a weird error
+        [x_original_estimate, h_im] = placeShape(im,x_mean);
+%         [x_original_estimate, h_im] = asm_multiResolution(im,x_mean,GM.Info.SmoothingFilter);
+        tic
         x_aligned = x_original_estimate;
         x_current = x_aligned;
     else
@@ -88,7 +86,7 @@ for n_resolution = 1:n_resolutions
             search_size = search_sizes(n_resolution); % Shift amount in x,y directions (xy^2 locations in total)
             %             gShifting = zeros((rc-1)^2,(xy+1)^2,1);
             n_shift = 0;
-            dist_min = [];            
+            dist_min = [];
             iPixel_startingPosition = x_current(2*n_landmark+[-1 0]); % Starting position of current pixel for current evolution
             
             % Shift the 2D profile around the current landmark
@@ -96,7 +94,7 @@ for n_resolution = 1:n_resolutions
                 for r = -(search_size/2):(search_size/2)
                     n_shift = n_shift+1;
                     iPixel = iPixel_startingPosition+[r c]'; % Coordinates of current pixel
-%                     plot(iPixel(1),iPixel(2),'bs'), hold on
+                    plot(iPixel(1),iPixel(2),'bs'), hold on
                     
                     % Interpolate the square around the pixel
                     [Xq,Yq] = meshgrid((iPixel(1)-rc/2):step_size:(iPixel(1)+rc/2),(iPixel(2)-rc/2):step_size:(iPixel(2)+rc/2));
@@ -120,18 +118,18 @@ for n_resolution = 1:n_resolutions
                     % Store the current 2D profile as a 1D vector
                     g_new = reshape(im_region_filt,size(im_region_filt,1).^2,1);
                     
-                    % Compute the 'distance' from the current profile to the mean profile                    
+                    % Compute the 'distance' from the current profile to the mean profile
                     g_bar = g_mean{n_landmark};
                     if strcmpi(dist_metric,'pca')
                         % Approximate current gray profile in the gray model space
-                        g_P = g_eVecs{n_landmark}(:,1:n_pcs); eVals = g_eVals{n_landmark}(1:n_pcs);                        
+                        g_P = g_eVecs{n_landmark}(:,1:n_pcs); eVals = g_eVals{n_landmark}(1:n_pcs);
                         g_new_b = g_P'*(g_new-g_bar);
                         
                         % How well does the model approximation fit the mean profile?
                         R = (g_new-g_bar)'*(g_new-g_bar) - g_new_b'*g_new_b; % This is actually R^2
-                        F = sum((g_new_b.^2)./eVals) + 2*(R./eVals(end)); % Not sure if the second term should be in the sum                        
-                        dist = F;                        
-                    elseif strcmpi(dist_metric,'maha')                                                                                                
+                        F = sum((g_new_b.^2)./eVals) + 2*(R./eVals(end)); % Not sure if the second term should be in the sum
+                        dist = F;
+                    elseif strcmpi(dist_metric,'maha')
                         % Measure Mahalanobis distance for this shift
                         % (This is the distance between this image's profile at the current
                         % shift, compared to the mean profile for this landmark from the
@@ -139,8 +137,8 @@ for n_resolution = 1:n_resolutions
                         md = (g_new-g_bar)'*inv(g_S{n_landmark})*(g_new-g_bar);
                         
                         % Should I be doing the abs(md) ?
-                        md = abs(md);                                                
-                        dist = md;                                            
+                        md = abs(md);
+                        dist = md;
                     end
                     
                     % Keep track of best shift
@@ -150,41 +148,41 @@ for n_resolution = 1:n_resolutions
                     elseif dist < dist_min
                         dist_min = dist;
                         best_pixel = iPixel';
-%                         plot(iPixel(1),iPixel(2),'g.','markersize',12)
-                    end                    
+                    end
                 end
             end % End shifting square grid around iPixel
             
-            % TODO: Move the distance calculations outside of the loops            
+            % TODO: Move the distance calculations outside of the loops
             x_suggested(2.*n_landmark+[-1 0]) = best_pixel;
 %             plot(best_pixel(1),best_pixel(2),'y.')
             
         end % Looping through landmarks
         
         % Update pose parameters towards suggested shape
-        xs = [x_suggested(1:2:end) x_suggested(2:2:end)]; xc = [x_current(1:2:end) x_current(2:2:end)];        
-        [~,xp] = procrustes(xs,xc);        
-        x_posed = zeros(size(x_mean));
-        x_posed(1:2:end) = xp(:,1);
-        x_posed(2:2:end) = xp(:,2);
+        xs = [x_suggested(1:2:end) x_suggested(2:2:end)]; xc = [x_current(1:2:end) x_current(2:2:end)];
+%         [~,xp] = procrustes(xs,xc);
+%         x_posed = zeros(size(x_mean));
+%         x_posed(1:2:end) = xp(:,1);
+%         x_posed(2:2:end) = xp(:,2);
+        [~,x_posed] = procrustes(x_suggested,x_current);
         
-        % Deform shape towards suggested points        
+        % Deform shape towards suggested points
         b_suggested = P'*(x_posed-x_mean);
         b=max(min(b_suggested,maxb),-maxb); % Keep adjustments within model limits
         
         % Generate new shape (within model space)
         x_new = x_mean + P*b;
         
-        % Transfer x_new to image space (for some reason we need to change the array size)        
-        xn = [x_new(1:2:end) x_new(2:2:end)];                        
+        % Transfer x_new to image space (for some reason we need to change the array size)
+        xn = [x_new(1:2:end) x_new(2:2:end)];
         [~,xn] = procrustes(xs,xn);
         x_new = zeros(size(x_mean));
-        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);                
+        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);
         x_current = x_new;
         
         % View the current evolution
-        imshow(im,[]), plotLandmarks(x_current,'hold',1), hold on        
-        plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',2)
+        imshow(im,[]), plotLandmarks(x_current,'hold',1,'linewidth',3), hold on
+        plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',4)
     end % End looping through evolutions
 end % End looping through resolution levels
 
@@ -194,8 +192,8 @@ x_original_estimate = x_original_estimate*downsampleFactor; % For final display
 
 % Compare the original estimate with the final evolution
 figure(gcf), hold off, imshow(im_original,[])
-h_orig  = plotLandmarks(x_original_estimate,'hold',1);
-h_final = plotLandmarks(x_final,'hold',1,'color','g');
+h_orig  = plotLandmarks(x_original_estimate,'hold',1,'linestyle','--');
+h_final = plotLandmarks(x_final,'hold',1,'color','g','linewidth',4);
 legend([h_orig,h_final],{'Original','Final'},'location','nw','fontsize',FS)
 title('Final shape','fontsize',FS)
 
@@ -205,6 +203,6 @@ if nargout == 1
 elseif nargout == 2
     varargout{1} = x_final;
     varargout{2} = b;
-end
+end, toc
 
 end % End of main
