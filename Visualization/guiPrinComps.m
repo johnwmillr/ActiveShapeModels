@@ -12,8 +12,8 @@ function guiPrinComps(shapeModel,varargin)
 % 17-Mar-2017
 
 % Varargin
-keys = {'show_image'}; default_values = {0};
-[show_image] = parseKeyValuePairs(varargin,keys,default_values);
+keys = {'show_image','layout'}; default_values = {0,'standard'};
+[show_image,face_layout] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Extract stuff from model struct
 [xBar, V, D] = deal(shapeModel.meanShape,shapeModel.eVectors,shapeModel.eValues);
@@ -21,7 +21,7 @@ keys = {'show_image'}; default_values = {0};
 % Initialization
 n_pcs = 3;
 slider_values = zeros(n_pcs,1);
-faceRegions = getFaceRegions(); % Connecting dots around the face
+faceRegions = getFaceRegions(face_layout); % Connecting dots around the face
 
 % Examine variations from individual PCs
 n_variations = 11; % Must be an odd number

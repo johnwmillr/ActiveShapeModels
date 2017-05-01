@@ -14,8 +14,8 @@ function varargout = plotLandmarks(landmarks,varargin)
 % 14-Mar-2017
 
 % Key-value pair varargin
-keys = {'show_lines','hold','color','linewidth','linestyle'}; default_values = {1,0,'m',1,'-'};
-[show_lines,hold_on,line_color,lw,ls] = parseKeyValuePairs(varargin,keys,default_values);
+keys = {'show_lines','hold','color','linewidth','linestyle','layout'}; default_values = {1,0,'m',1,'-','standard'};
+[show_lines,hold_on,line_color,lw,ls,face_layout] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Plot the landmarks for each shape
 n_shapes = size(landmarks,2);
@@ -46,7 +46,7 @@ ax = plot(meanShape(1:2:end),meanShape(2:2:end),'ro',...
 
 % Connect dots on the face (optional)
 if show_lines    
-    faceLabels = getFaceRegions();
+    faceLabels = getFaceRegions(face_layout);
     
     mew = [meanShape(1:2:end) meanShape(2:2:end)];
     for i = 1:length(faceLabels)
