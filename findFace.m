@@ -184,7 +184,7 @@ for n_resolution = 1:n_resolutions
             % TODO: Move the distance calculations outside of the loops
             x_suggested(2.*n_landmark+[-1 0]) = best_pixel;
             
-            % Visualize & save video (optional)            
+            % Visualize & save video (optional)
             if vis_grid, plot(best_pixel(1),best_pixel(2),'y.'), drawnow(), end
             if save_video && ishandle(h_im)
                 try vidFrame = getframe(h_im);
@@ -192,7 +192,7 @@ for n_resolution = 1:n_resolutions
                 catch
                     close(vidObj)
                 end
-            end                
+            end
             
         end % Looping through landmarks
         
@@ -206,12 +206,11 @@ for n_resolution = 1:n_resolutions
         % Generate new shape (within model space)
         x_new = x_mean + P*b;
         
-        % Transfer x_new to image space (for some reason we need to change the array size)
-        xs = [x_suggested(1:2:end) x_suggested(2:2:end)];
-        xn = [x_new(1:2:end) x_new(2:2:end)];
+        % Transfer x_new to image space (for some reason we need to change the array shape)
+        xn = [x_new(1:2:end) x_new(2:2:end)]; xs = [x_suggested(1:2:end) x_suggested(2:2:end)];
         [~,xn] = procrustes(xs,xn);
         x_new = zeros(size(x_mean));
-        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);        
+        x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);
         x_current = x_new;
         
         if vis % View the current evolution
@@ -234,7 +233,7 @@ x_final = x_new*downsampleFactor;
 x_original_estimate = x_original_estimate*downsampleFactor; % For final display
 
 % Compare the original estimate with the final evolution
-if vis
+if vis || 1
     figure(gcf), hold off, imshow(im_original,[])
     h_orig  = plotLandmarks(x_original_estimate,'hold',1,'linestyle','--');
     h_final = plotLandmarks(x_final,'hold',1,'color','g','linewidth',4);
@@ -245,14 +244,8 @@ if vis
             writeVideo(vidObj,vidFrame);
         catch
             close(vidObj)
-        end
+        end, close(vidObj), disp('Video closed.') % Close video
     end
-end
-
-% Close video
-if save_video
-    close(vidObj)
-    disp('Video closed.')
 end
 
 % Output final shape and model parameters
