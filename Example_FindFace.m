@@ -65,5 +65,5 @@ im = imread(fullfile(project_dir,'Faces','Face.jpg')); close all
 
 %% Find a face!
 disp('Finding a face...')
-findFace(im,shapeModel,grayModel)
+findFace(im,shapeModel,grayModel,'visualize',1,'facefinder','cick')
 

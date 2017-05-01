@@ -10,7 +10,7 @@ function faceRegions = getFaceRegions(layout)
 % 19-Mar-2017
 
 if nargin == 0
-    layout = 'nobrows';
+    layout = 'standard';    
 end
 
 switch layout
@@ -28,7 +28,7 @@ switch layout
     case 'nobrows'
         
         % Connect dots around the face
-        faceRegions = cell(7,1);
+        faceRegions = cell(9,1);
         faceRegions{1} = 1:3;         % Left eye
         faceRegions{2} = 4:6;         % Right eye
         faceRegions{3} = 7;           % Left side of head
@@ -38,6 +38,10 @@ switch layout
         faceRegions{7} = 13:15;
         faceRegions{8} = [16:19 16];
         faceRegions{9} = 20;
+    
+    case 'ilm' % For the ILM layer in OCT scans
+        faceRegions{1} = 1:31;
+        
 end
 
 

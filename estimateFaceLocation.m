@@ -1,12 +1,10 @@
-function [x_aligned, f] = asm_multiResolution(im_original,xBar,h_filt)
-% ASM_MULTIRESOLUTION 
+function [x_aligned, f] = estimateFaceLocation(im_original,xBar,h_filt,visualize)
+% ESTIMATEFACELOCATION 
 %
 %	INPUT
 %
 %
-%
 %	OUTPUT
-%
 %
 % John W. Miller
 % 12-Apr-2017
@@ -20,6 +18,8 @@ if nargin < 3
     h_filt = A*exp(-((x-mew).^2)./(2*sig^2));
 end
 im_filt = conv2(h_filt,h_filt,im_original,'same');
+
+if nargin < 4, visualize = 1; end   
 
 % Downsample
 n = 1;
@@ -50,8 +50,12 @@ x_aligned(1:2:end) = x_aligned(1:2:end) + J*n; % Scale back up the detected regi
 x_aligned(2:2:end) = x_aligned(2:2:end) + I*n;
 
 % Add mean shape to image
-f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
-hold on, imshow(im_original,[],'InitialMagnification','fit')
-plotLandmarks(x_aligned,'show_lines',1,'hold',1);
+if visualize
+    f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+    hold on, imshow(im_original,[],'InitialMagnification','fit')
+    plotLandmarks(x_aligned,'show_lines',1,'hold',1);
+else
+    f = [];
+end
 
 end % End of main
