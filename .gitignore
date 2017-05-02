@@ -10,6 +10,7 @@
 /Landmarks
 /scratch
 /SavedModels
+/Evaluation
 
 # Matlab files
 *_v*.m
