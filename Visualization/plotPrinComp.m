@@ -1,4 +1,4 @@
-function plotPrinComp(shapeModel,n_pc)
+function plotPrinComp(shapeModel,n_pc,layout)
 % PLOTPRINCOMP displays the variation along a single principal component from an
 % active shapes model
 %
@@ -19,6 +19,9 @@ function plotPrinComp(shapeModel,n_pc)
 % John W. Miller
 % 16-Mar-2017
 
+if nargin < 3
+    layout = 'standard';
+end
 
 % Extract stuff from model struct
 [xBar, V, D] = deal(shapeModel.meanShape,shapeModel.eVectors,shapeModel.eValues);
@@ -34,7 +37,7 @@ xLim = [floor(min(min(shapeVariations(1:2:end,:)))) ceil(max(max(shapeVariations
 yLim = [floor(min(min(shapeVariations(2:2:end,:)))) ceil(max(max(shapeVariations(2:2:end))))];
 
 % Change plot color for different weights of the selected PC
-faceRegions = getFaceRegions();
+faceRegions = getFaceRegions(layout);
 mew(:,1) = xBar(1:2:end);
 mew(:,2) = xBar(2:2:end);
 figure, hold on

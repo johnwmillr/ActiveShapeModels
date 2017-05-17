@@ -13,7 +13,7 @@ if nargin == 0
     layout = 'standard';    
 end
 
-switch layout
+switch lower(layout)
     case 'standard'
         
         % Connect dots around the face
@@ -41,6 +41,12 @@ switch layout
     
     case 'ilm' % For the ILM layer in OCT scans
         faceRegions{1} = 1:31;
+    case 'both'
+        faceRegions{1} = 1:10;
+        faceRegions{2} = 11:20;
+        faceRegions{3} = 21:51;
+    case 'muct'
+        faceRegions{1} = 1:76;
         
 end
 

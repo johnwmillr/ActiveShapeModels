@@ -1,4 +1,4 @@
-function [x_aligned, f] = placeShape(im,x)
+function [x_aligned, f] = placeShape(im,x,layout)
 % PLACESHAPE 
 %
 %	INPUT
@@ -11,6 +11,10 @@ function [x_aligned, f] = placeShape(im,x)
 % John W. Miller
 % 21-Apr-2017
 
+if nargin < 3
+    layout = 'standard';
+end
+
 % View the image
 f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
 hold on, imshow(im,[],'InitialMagnification','fit')
@@ -21,14 +25,20 @@ text(0.07,0.95,'Click on center of nose. Or close by. Test your luck.','fontsize
 
 % Center shape on user's point
 x_aligned = x;
-x_aligned(1:2:end) = x_aligned(1:2:end)-x(27); % Center on middle of nose
-x_aligned(2:2:end) = x_aligned(2:2:end)-x(28);
+
+switch lower(layout)
+    case 'standard'
+        x_aligned(1:2:end) = x_aligned(1:2:end)-x(27); % Center on middle of nose
+        x_aligned(2:2:end) = x_aligned(2:2:end)-x(28);
+    case 'muct'
+        x_aligned(1:2:end) = x_aligned(1:2:end)-x(135); % Center on middle of nose
+        x_aligned(2:2:end) = x_aligned(2:2:end)-x(136);
+end
 x_aligned(1:2:end) = x_aligned(1:2:end)+I;
 x_aligned(2:2:end) = x_aligned(2:2:end)+J;
 
 % Display centered shape
-plotLandmarks(x_aligned,'show_lines',1,'hold',1)
-
+plotLandmarks(x_aligned,'show_lines',1,'hold',1,'layout',layout)
 
 % Varargout
 if nargout == 2 % User wants the figure handle

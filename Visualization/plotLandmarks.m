@@ -31,8 +31,10 @@ catch
 end
 for n_shape = 1:n_shapes
     iShape = [landmarks(1:2:end,n_shape) landmarks(2:2:end,n_shape)];
-    plot(iShape(:,1),iShape(:,2),'o','color', colors(n_shape,:),...
-        'linewidth',2,'markersize',2,'markerfacecolor',colors(n_shape,:))
+%     plot(iShape(:,1),iShape(:,2),'o','color', colors(n_shape,:),...
+%         'linewidth',2,'markersize',2,'markerfacecolor',colors(n_shape,:))
+    plot(iShape(:,1),iShape(:,2),'+','color', 'k',...
+        'linewidth',2,'markersize',7,'markerfacecolor',colors(n_shape,:))
 end
 
 % Add mean shape to the plot
