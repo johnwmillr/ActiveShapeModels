@@ -1,8 +1,12 @@
-# Face images
+# Specific files
+shapeModel_CootesTaylor.m
+
+# Face images & videos
 *.jpg
 *.Jpg
 *.png
 *.ai
+*.mp4
 
 # Ignore directories
 /Media

@@ -8,3 +8,5 @@ Here is a link to the [faces training set](http://robotics.csie.ncku.edu.tw/Data
 
 Manipulating the weights on the 1st and 2nd principal components deforms the face shape within the allowable range of variation.
 ![Variation of the 1st and 2nd face principal components](/Media/Faces_PC_Variations.png)
+
+This project was part of my work for *Advanced Digital Image Processing* at the University of Iowa during spring 2017. You can read my [final report for the class here](/Media/ADIP_ActiveShapeModels_FinalReport.pdf). The report was a tad rushed, my apologies!
