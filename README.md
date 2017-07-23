@@ -4,7 +4,6 @@ Active Shape Models for face detection
 
 This project was part of my work for *Advanced Digital Image Processing* at the University of Iowa during spring 2017. You can read my [final report for the class here](/Media/ADIP_ActiveShapeModels_FinalReport.pdf). The report was a tad rushed, my apologies!
 
-<img src="/Media/FoundFaceExample_cropped.png" width="380">
 
 ### Usage ###
 After cloning this repository, run the [Example_FindFace](Example_FindFace.m) script for a walkthrough demonstration of how to use this ASM code for locating a face in an example image.
