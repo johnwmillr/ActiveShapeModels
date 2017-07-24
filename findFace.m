@@ -30,11 +30,12 @@ default_values = {0,0,1,'click','pca',4,0,'standard'};
 if save_video || save_gif, close all, vis=1;
     if save_gif, videoFileName = [pwd filesep sprintf('ASM_FaceDetection_%s.gif',date)]; end
 end
-if save_video    
+if save_video
     videoFileName = [pwd filesep sprintf('ASM_FaceDetection_%s',date)];
-    vidObj = VideoWriter(videoFileName,'MPEG-4'); % Video File
+    global vidObj %#ok<*TLEV>
+    vidObj = VideoWriter(videoFileName,'MPEG-4');
     vidObj.FrameRate = 50;
-    open(vidObj); disp('Recording video...')                
+    open(vidObj); disp('Recording video...')
 end
 
 % Visualization stuff
@@ -50,14 +51,14 @@ warning('off','MATLAB:nearlySingularMatrix');
 n_resolutions = length(grayModel);
 search_sizes = round(linspace(8,3,n_resolutions));
 if ~isscalar(evolutions)
-    evolutions = round(linspace(evolutions(1),evolutions(2),n_resolutions)); 
+    evolutions = round(linspace(evolutions(1),evolutions(2),n_resolutions));
 else
     evolutions = repmat(evolutions,n_resolutions,1);
 end
 
 % Perform ASM search at each resolution level
 for n_resolution = 1:n_resolutions
-    GM = grayModel(n_resolution);   
+    GM = grayModel(n_resolution);
     
     % Smooth the image (Anti-aliasing?)
     h_filt = GM.Info.SmoothingFilter;
@@ -95,18 +96,16 @@ for n_resolution = 1:n_resolutions
             [x_original_estimate, h_im] = placeShape(im,x_mean,layout);
         end, tic, drawnow
         [x_aligned,x_current] = deal(x_original_estimate);
-                                                
-        if save_video && ishandle(h_im)
-            try frame = getframe(h_im);
-                writeVideo(vidObj,frame);
-            catch
-                close(vidObj)
+        
+        if save_video && ishandle(h_im)            
+            for n = 1:5
+                savevideo(h_im)
             end
         elseif save_gif && ishandle(h_im)
-            frame = getframe(h_im);
-            gif_im = frame2im(frame);
-            [imind,cm] = rgb2ind(gif_im,256);
-            imwrite(imind,cm,videoFileName,'gif','Loopcount',inf);
+            savegif(h_im, videoFileName, 1)
+            for n = 1:2 % Start with multiple frames at beginning of GIF
+                savegif(h_im, videoFileName, 0)
+            end
         end
     else
         resolutionScale = grayModel(n_resolution-1).Info.downsampleFactor/downsampleFactor;
@@ -119,8 +118,8 @@ for n_resolution = 1:n_resolutions
     
     % Evolve estimate of face location, adjusting landmarks w/in model space
     if isscalar(evolutions), n_evolutions = evolutions;
-    else n_evolutions = evolutions(n_resolution); end;        
-    for n_evolution = 1:n_evolutions;        
+    else n_evolutions = evolutions(n_resolution); end;
+    for n_evolution = 1:n_evolutions;
         if vis, title(sprintf('Downsample: 1/%d. %d remaining.\nEvolution %d/%d',...
                 downsampleFactor,n_resolutions-n_resolution,n_evolution,n_evolutions),'fontsize',FS), drawnow('expose'), end
         x_suggested = zeros(size(x_aligned));
@@ -140,19 +139,19 @@ for n_resolution = 1:n_resolutions
                     n_shift = n_shift+1;
                     iPixel = iPixel_startingPosition+[r c]'; % Coordinates of current pixel
                     if vis_grid, plot(iPixel(1),iPixel(2),'bs'), hold on, end
-                                        
+                    
                     im_region = imcrop(im,[iPixel(1)-rc/2 iPixel(2)-rc/2 rc rc]);
                     sz = size(im_region);
                     if any(sz < rc+1)
                         im_region = padarray(im_region,max(rc-sz+1,0),'replicate','post');
-                    end                    
+                    end
                     if sz(1) > rc+1
                         im_region = im_region(1:rc,:);
-                    end                    
+                    end
                     if sz(2) > rc+1
                         im_region = im_region(:,1:rc);
                     end
-
+                    
                     % Calculate the gradient for this region
                     im_region_filt = conv2(im_region,kernel,'valid');
                     abs_sum = sum(abs(im_region_filt(:)));
@@ -206,16 +205,7 @@ for n_resolution = 1:n_resolutions
             % Visualize & save video (optional)
             if vis_grid, plot(best_pixel(1),best_pixel(2),'y.'), drawnow(), end
             if save_video && ishandle(h_im)
-                try frame = getframe(h_im);
-                    writeVideo(vidObj,frame);                                        
-                catch
-                    close(vidObj)
-                end
-            elseif save_gif && ishandle(h_im)           
-                frame = getframe(h_im);
-                gif_im = frame2im(frame);
-                [imind,cm] = rgb2ind(gif_im,256);
-                imwrite(imind,cm,videoFileName,'gif','WriteMode','append');
+                savevideo(h_im)
             end
         end % Looping through landmarks
         
@@ -236,21 +226,14 @@ for n_resolution = 1:n_resolutions
         x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);
         x_current = x_new;
         
-        if vis % View the current evolution            
+        if vis % View the current evolution
             imshow(im,[]), plotLandmarks(x_current,'hold',1,'linewidth',3,'layout',layout), hold on
-            plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',4), drawnow()            
+            plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',4), drawnow()
             
             if save_video && ishandle(h_im)
-                try frame = getframe(h_im);
-                    writeVideo(vidObj,frame);                                        
-                catch
-                    close(vidObj)
-                end
-            elseif save_gif && ishandle(h_im)           
-                frame = getframe(h_im);
-                gif_im = frame2im(frame);
-                [imind,cm] = rgb2ind(gif_im,256);
-                imwrite(imind,cm,videoFileName,'gif','WriteMode','append');            
+                savevideo(h_im)
+            elseif save_gif && ishandle(h_im)
+                savegif(h_im, videoFileName)
             end
         end
     end % End looping through evolutions
@@ -261,25 +244,21 @@ x_final = x_new*downsampleFactor;
 x_original_estimate = x_original_estimate*downsampleFactor; % For final display
 
 % Compare the original estimate with the final evolution
-if vis || 1
+if vis
     figure(gcf), hold off, imshow(im_original,[])
     h_orig  = plotLandmarks(x_original_estimate,'hold',1,'linestyle','--','layout',layout);
     h_final = plotLandmarks(x_final,'hold',1,'color','g','linewidth',2,'layout',layout);
     legend([h_orig,h_final],{'Original','Final'},'location','nw','fontsize',FS)
     title('Final shape','fontsize',FS)
-    if save_video
-        try frame = getframe(h_im);
-            for n = 1:30 % Add extra copies of the final image
-                writeVideo(vidObj,frame);                                
-            end            
-        catch
-            close(vidObj)        
-        end, close(vidObj), disp('Video closed.') % Close video
-    elseif save_gif && ishandle(h_im)           
-        frame = getframe(h_im);
-        gif_im = frame2im(frame);
-        [imind,cm] = rgb2ind(gif_im,256);
-        imwrite(imind,cm,videoFileName,'gif','WriteMode','append');            
+    if save_video        
+        for n = 1:30 % Add extra copies of the final image
+            savevideo(h_im)
+        end
+        close(vidObj), disp('Video closed.') % Close video                
+    elseif save_gif && ishandle(h_im)
+        for n = 1:6
+            savegif(h_im, videoFileName)
+        end
     end
 end
 
@@ -293,3 +272,34 @@ end, toc
 
 end % End of main
 
+%% --------------------------------------------------------------------
+% Internal functions
+%  --------------------------------------------------------------------
+
+function savevideo(im_handle)
+% SAVEVIDEO saves a single frame to the global video object.
+    global vidObj
+    
+    drawnow()
+    try frame = getframe(im_handle);
+        writeVideo(vidObj,frame);
+    catch
+        close(vidObj)
+    end
+end
+
+function savegif(im_handle, filename, first_frame)
+% SAVEGIF saves a single frame to the GIF file.
+    if nargin < 3
+        first_frame = false;
+    end
+    
+    drawnow()
+    gif_im = frame2im(getframe(im_handle));
+    [imind,cm] = rgb2ind(gif_im,256);
+    if first_frame
+        imwrite(imind,cm,filename,'gif','LoopCount',inf);
+    else
+        imwrite(imind,cm,filename,'gif','WriteMode','append','delaytime',0.5);
+    end
+end
