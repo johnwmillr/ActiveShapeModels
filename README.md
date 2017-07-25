@@ -2,10 +2,9 @@ Active Shape Models for face detection
 ======
 ![](/Media/Faces_MultiResolution_horizontal.png "Variations in the gray-level model")
 
-![](/Media/Video/ASM_FaceDetection_24-Jul-2017_MUCT.gif "Finding a face using the MUCT layout")
-
 This project was part of my work for *Advanced Digital Image Processing* at the University of Iowa during spring 2017. You can read my [final report for the class here](/Media/ADIP_ActiveShapeModels_FinalReport.pdf). The report was a tad rushed, my apologies!
 
+![](/Media/Video/ASM_FaceDetection_24-Jul-2017_MUCT.gif "Finding a face using the MUCT layout")
 
 ### Usage ###
 After cloning this repository, run the [Example_FindFace](Example_FindFace.m) script for a walkthrough demonstration of how to use this ASM code for locating a face in an example image.
