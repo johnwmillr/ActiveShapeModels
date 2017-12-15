@@ -14,7 +14,7 @@ function varargout = plotLandmarks(landmarks,varargin)
 % 14-Mar-2017
 
 % Key-value pair varargin
-keys = {'show_lines','hold','color','linewidth','linestyle','layout'}; default_values = {1,0,'m',1,'-','standard'};
+keys = {'show_lines','hold','color','linewidth','linestyle','layout'}; default_values = {1,0,'m',1,'-','muct'};
 [show_lines,hold_on,line_color,lw,ls,face_layout] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Plot the landmarks for each shape
@@ -65,7 +65,7 @@ end
 set(h,'Units','Inches');
 pos = get(h,'Position');
 set(h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
-axis off;
+axis off
 set(gca,'YDir','reverse');
 drawnow
 

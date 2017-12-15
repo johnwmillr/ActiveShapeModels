@@ -16,25 +16,22 @@
 %   2D gray-level profiles inspired by:
 %       Milborrow, S. (2016). "Multiview Active Shape Models with SIFT Descriptors."
 %
-%   See also BUILDSHAPEMODEL, BUILDGRAYLEVELMODEL, FINDFACE
+%   See also BUILDSHAPEMODEL, BUILDGRAYLEVELMODEL, FINDFACE, EXAMPLE_BUILDMUCTMODEL
 %
 % John W. Miller
 % Electrical & Computer Engineering
 % University of Iowa
-% 30-Apr-2017
+% 15-Dec-2017
 
 close all; clear all; clc
 %% Add necessary paths
-% This will work if you run this script. If you're just executing these lines into
-% the command line, make sure you set filename = 'Example_FindFace'
-filename = mfilename;
-project_dir = fileparts(which(filename));
-addpath(project_dir,fullfile(project_dir,'Utilities'),fullfile(project_dir,'Visualization')), cd(project_dir)
+% Make sure you run this example script while within its containing folder
+project_dir = pwd;
+addpath(project_dir,fullfile(project_dir,'Utilities'),fullfile(project_dir,'Visualization'))
 
 %% Load image landmarks from disk
-% This will load the variable 'allLandmarks' into the workspace.
-% allLandmarks is a 40x50 matrix, corresponding to [2*n_landmarks x n_images]
-load(fullfile(project_dir,'Landmarks','Example_FindFace_Landmarks'))
+landmark_style = 'MUCT';
+load(fullfile(project_dir,'Landmarks','Example_FindFace_Landmarks_MUCT'))    
 
 % View the landmarks we just loaded (they are not aligned, we will align them)
 plotLandmarks(allLandmarks), pause(1), close
@@ -43,27 +40,33 @@ plotLandmarks(allLandmarks), pause(1), close
 shapeModel = buildShapeModel(allLandmarks);
 
 %% Explore the shape model
-if ~strcmp(mfilename,'Example_FindFace') % Only view GUI if user didn't call the entire script
-    guiPrinComps(shapeModel,'show_image',1) % Effect of PC weights on shape (GUI)
+view_gui = 0;
+if view_gui
+    guiPrinComps(shapeModel,'layout',landmark_style) % Effect of PC weights on shape (GUI)
 end
 
 %% Create the gray-level 2D profile model (or load it from disk more likely)
-if isdir(fullfile(project_dir,'Faces','faces_A_50')) && 0
-    pathToImages = fullfile(project_dir,'Faces','faces_A_50');
-    grayModel = buildGrayLevelModel(pathToImages,shapeModel); % This takes about 30 seconds
+create_new_gray_model = false;
+if create_new_gray_model
+    faceFiles = dir(fullfile(pathToImages,'*.jpg'));
+    faceFiles = faceFiles(~cellfun(@isempty,regexp({faceFiles(:).name}','i\d{3}qa-[fm]n')));
+    shapeModel.trainingImages = fullfile(project_dir,'Faces','MUCT','muct_images');
+    grayModel = buildGrayLevelModel(faceFiles,shapeModel); % This takes about 30 seconds   
 else
     % Load the 'grayModel' struct into the workspace.
-    % grayModel is a 4x1 ([n_resolutions x 1]) struct containing the gray-level
+    % grayModel is a struct ([n_resolutions x 1]) containing the gray-level
     % gradient information for each of the training images at each resolution for
     % each landmark making up the face shape.
     fprintf('\nLoading the gray-level model...')
-    load(fullfile(project_dir,'SavedModels','grayModel_Example_FindFace')); fprintf(' Done loading.\n')
+    load(fullfile(project_dir,'SavedModels','grayModel_MUCT')); fprintf(' Done loading.\n')
 end
 
-%% Load the example face
-im = imread(fullfile(project_dir,'Faces','Face.jpg')); close all
+%% Explore the gray model
+n_landmark = 67;
+viewGrayProfile(grayModel,1,n_landmark)
 
 %% Find a face!
 disp('Finding a face...')
-findFace(im,shapeModel,grayModel,'visualize',1,'facefinder','cick')
+im = imread(fullfile(project_dir,'Faces','Face.jpg')); close all
+findFace(im,shapeModel,grayModel,'visualize',1,'facefinder','click','layout','muct')
 

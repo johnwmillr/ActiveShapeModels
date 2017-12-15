@@ -12,7 +12,7 @@ function guiPrinComps(shapeModel,varargin)
 % 17-Mar-2017
 
 % Varargin
-keys = {'show_image','layout'}; default_values = {0,'standard'};
+keys = {'show_image','layout'}; default_values = {0,'muct'};
 [show_image,face_layout] = parseKeyValuePairs(varargin,keys,default_values);
 
 % Extract stuff from model struct
@@ -43,10 +43,9 @@ shapeVariations = repmat(xBar,1,n_variations) + P*weights(1:n_pcs,:);
 
 %% Initial visualization
 f = figure();
-if show_image    
-    imDir = fullfile(fileparts(which(mfilename)),'..','Faces');
-    imFile = 'Face_01.jpg';
-    im = imread(fullfile(imDir,imFile));
+if show_image       
+    imFile = 'Face.jpg';
+    im = imread(fullfile('Faces',imFile));
     xBar = placeShape(im,xBar);
 end
 
