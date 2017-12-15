@@ -1,9 +1,10 @@
-function grayModel = buildGrayLevelModel(pathToImages,shapeModel,varargin)
+function grayModel = buildGrayLevelModel(pathsToImages,shapeModel,varargin)
 % BUILDGRAYLEVELMODEL
 %
 %	INPUT
-%       pathToImages: Full path to directory containing face images.
-%       shapeModel: Comes from buildShapeModel();
+%       pathsToImages: Struct containing path to each image.
+%                      Generate it like this: dir(fullfile(pathToImages,'*.jpg'));
+%       shapeModel: Comes from the BUILDSHAPEMODEL function.
 %
 %	OUTPUT
 %       grayProfileModel: (struct) Contains all ya need for the model.
@@ -12,24 +13,22 @@ function grayModel = buildGrayLevelModel(pathToImages,shapeModel,varargin)
 %   TODO: Make the process for getting gray-level info its own function, so it can be
 %   called during the search process for new images (right now I'm repeating code)
 %
-%   TODO: Add varargin to specify model parameters (e.g. resolution, filter, etc.)
-%   TODO: Add ability to save a model to disk once it's trained
+%   See also BUILDSHAPEMODEL
 %
 % John W. Miller
-% 25-Apr-2017
+% 15-Dec-2017
 tic
 
 % Key-value pair varargin
-keys = {'save_model','resolutions'}; default_values = {0,6:-1:3};
-[save_model, downsample_factors] = parseKeyValuePairs(varargin,keys,default_values);
-
+keys = {'save_model','resolutions','region_size','view_model'}; default_values = {0,6:-1:3,[20 5],0};
+[save_model, downsample_factors, r_size, view_model] = parseKeyValuePairs(varargin,keys,default_values);
 if save_model
     fprintf('\n\n')
-    save_name = ['grayModel_' input('Save name? grayModel_','s') '.mat'];    
+    save_name = ['grayModel_' datestr(date,'yyyy-mm-dd') '_' input('Save name? grayModel_','s') '.mat'];    
     
     save_dir = fullfile(uigetdir);
     disp('Saving file...')
-end
+end, n_images = length(pathsToImages);
 
 % Multi-resolution
 n_resolutions = numel(downsample_factors);
@@ -39,7 +38,7 @@ interp_step_sizes = 1*ones(n_resolutions,1); % Probably just leave this as 1
 
 % These model parameters are very important.
 filter_sigs = linspace(0.8,0.35,n_resolutions); % Should go from about 0.8 to 0.3
-region_size = linspace(20,5,n_resolutions);     % Should go from about 20 to 5
+region_size = linspace(r_size(1),r_size(2),n_resolutions); % Should go from about 20 to 5
 
 % Build a 2D gray-level profile for each landmark at each resolution
 for n_resolution = 1:n_resolutions
@@ -49,9 +48,9 @@ for n_resolution = 1:n_resolutions
     x_bar = shapeModel.meanShape./downsample_factor;
     imageLandmarks = shapeModel.unalignedShapes./downsample_factor;
     
-    % Image filenames
-    imFiles = dir([pathToImages filesep '*.jpg']);
-    n_images = length(imFiles);
+    % Make sure we're working with just the images we want (for MUCT)
+    msg = sprintf('More images found in image directory than in the shape model.\nTry using the "regexp" key-pair input.');
+    assert(n_images == shapeModel.n_shapes,msg)
     
     % Sample a square region of pixels around each landmark
     rc = region_size(n_resolution); % Size of square (rc+1)
@@ -73,26 +72,27 @@ for n_resolution = 1:n_resolutions
     %% Start loopin'
     % For each image in the training set, calculate the image gradient (kinda) in a
     % square region of pixels around each landmark
-    for n_image = 1:n_images
-        im = imread(fullfile(pathToImages,imFiles(n_image).name));
+    for n_image = 1:n_images                
+        im = rgb2gray(imread(fullfile(shapeModel.trainingImages,pathsToImages(n_image).name)));
         
         % Smooth and downsample the image
         im = conv2(h_filt,h_filt,im,'same');
         im = imresize(im,1./downsample_factor);
-        %     figure(1), hold off, imshow(im,[]), hold on
-        %     plotLandmarks(imageLandmarks(:,n_image),'hold',1)
         for n_landmark = 1:n_landmarks
             iPixel = imageLandmarks(2*n_landmark+[-1 0],n_image); % Coordinates of current landmark
             
-            % Interpolate the square around the pixel
-            step_size = interp_step_sizes(n_resolution);
-            [Xq,Yq] = meshgrid((iPixel(1)-rc/2):step_size:(iPixel(1)+rc/2),(iPixel(2)-rc/2):step_size:(iPixel(2)+rc/2));
-            im_region = interp2(im2double(im),Xq,Yq,'cubic'); % You could also put a scalar after 'cubic' to fill NaNs
-            if any(any(isnan(im_region)))
-                imr = reshape(im_region,numel(im_region),1);
-                imr(isnan(imr)) = nanmedian(imr);
-                im_region = reshape(imr,size(im_region,1),size(im_region,2));
+            % Crop a square region around the pixel
+            im_region = imcrop(im,[iPixel(1)-rc/2 iPixel(2)-rc/2 rc rc]);           
+            sz = size(im_region);
+            if any(sz < rc+1)
+                im_region = padarray(im_region,max(rc-sz+1,0),'replicate','post');
             end
+            if sz(1) > rc+1
+                im_region = im_region(1:rc,:);
+            end
+            if sz(2) > rc+1
+                im_region = im_region(:,1:rc);
+            end            
             
             % Calculate the gradient for this region
             im_region_filt = conv2(im_region,kernel,'valid');
@@ -122,8 +122,7 @@ for n_resolution = 1:n_resolutions
         eValues{n_landmark} = D;
     end
     
-    %% Visualize the model (optional)
-    view_model = 0;
+    %% Visualize the model (optional)    
     if view_model
         n_landmark = 14;
         % Mean profile at a specific landmark
@@ -143,7 +142,7 @@ for n_resolution = 1:n_resolutions
     grayModel(n_resolution).eVectors  = eVectors;
     grayModel(n_resolution).eValues   = eValues;
     grayModel(n_resolution).Info.n_images = n_images;
-    grayModel(n_resolution).Info.imageDir = pathToImages;
+    grayModel(n_resolution).Info.imageDir = shapeModel.trainingImages;
     grayModel(n_resolution).Info.downsampleFactor = downsample_factor;
     grayModel(n_resolution).Info.rc_squaresize = rc;
     grayModel(n_resolution).Info.SigmoidEQ = C;
@@ -151,7 +150,7 @@ for n_resolution = 1:n_resolutions
     grayModel(n_resolution).Info.EdgeKernel = kernel;
     grayModel(n_resolution).Info.interp_step_size = interp_step_sizes(n_resolution);
     
-    fprintf('\nResolution scale: 1/%d. %d remaining.',downsample_factor,numel(downsample_factors)-n_resolution)
+    fprintf('\nResolution scale: 1/%d. %d remaining. ',downsample_factor,numel(downsample_factors)-n_resolution)
 end, toc % End looping through downsampling factors
 
 % Save the model (optional)

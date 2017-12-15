@@ -14,8 +14,7 @@ if nargin == 0
 end
 
 switch lower(layout)
-    case 'standard'
-        
+    case 'standard'        
         % Connect dots around the face
         faceRegions = cell(7,1);
         faceRegions{1} = 1:3;         % Left eye
@@ -25,8 +24,7 @@ switch lower(layout)
         faceRegions{5} = 13:15;       % Nose
         faceRegions{6} = [16:19 16];  % Mouth
         faceRegions{7} = 20;          % Chin
-    case 'nobrows'
-        
+    case 'nobrows'        
         % Connect dots around the face
         faceRegions = cell(9,1);
         faceRegions{1} = 1:3;         % Left eye
@@ -37,17 +35,9 @@ switch lower(layout)
         faceRegions{6} = 12;          % Right side of head
         faceRegions{7} = 13:15;
         faceRegions{8} = [16:19 16];
-        faceRegions{9} = 20;
-    
-    case 'ilm' % For the ILM layer in OCT scans
-        faceRegions{1} = 1:31;
-    case 'both'
-        faceRegions{1} = 1:10;
-        faceRegions{2} = 11:20;
-        faceRegions{3} = 21:51;
+        faceRegions{9} = 20;        
     case 'muct'
-        faceRegions{1} = 1:76;
-        
+        faceRegions{1} = 1:76;        
 end
 
 

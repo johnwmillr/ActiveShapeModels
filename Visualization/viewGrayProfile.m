@@ -15,6 +15,6 @@ function viewGrayProfile(grayModel,nr,nl)
 graySquare = reshape(grayModel(nr).meanProfile{nl},grayModel(nr).Info.rc_squaresize-1,grayModel(nr).Info.rc_squaresize-1);
 
 % View the square region
-figure, imshow(graySquare,[])
+figure, imshow(imresize(graySquare,round(200/length(graySquare))),[])
 
 end % End of main

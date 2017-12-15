@@ -16,7 +16,8 @@ if nargin < 3
 end
 
 % View the image
-f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+% f = figure('units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+f = figure('units','normalized','outerposition',[.25 0.4 .3 .55]);
 hold on, imshow(im,[],'InitialMagnification','fit')
 text(0.07,0.95,'Click on center of nose. Or close by. Test your luck.','fontsize',FS,'units','normalized','color','r')
 

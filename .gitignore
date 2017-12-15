@@ -9,6 +9,7 @@ shapeModel_CootesTaylor.m
 *.mp4
 
 # Ignore directories
+/Faces
 /Media
 /Old
 /Landmarks

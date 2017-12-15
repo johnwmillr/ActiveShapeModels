@@ -22,7 +22,7 @@ function varargout = findFace(im_original,shapeModel,grayModel,varargin)
 
 % Key-value pair varargin
 keys = {'save_video','save_gif','visualize','facefinder','dist_metric','evolutions','vis_grid','layout'};
-default_values = {0,0,1,'click','pca',4,0,'standard'};
+default_values = {0,0,1,'click','pca',4,0,'muct'};
 [save_video, save_gif, vis, face_find_method, dist_metric, evolutions, vis_grid, layout] =...
     parseKeyValuePairs(varargin,keys,default_values);
 
@@ -226,7 +226,7 @@ for n_resolution = 1:n_resolutions
         x_new(1:2:end) = xn(:,1); x_new(2:2:end) = xn(:,2);
         x_current = x_new;
         
-        if vis % View the current evolution
+        if vis % View the current evolution            
             imshow(im,[]), plotLandmarks(x_current,'hold',1,'linewidth',3,'layout',layout), hold on
             plot(x_suggested(1:2:end),x_suggested(2:2:end),'bo','linewidth',4), drawnow()
             
