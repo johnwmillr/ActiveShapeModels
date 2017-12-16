@@ -38,7 +38,7 @@ interp_step_sizes = 1*ones(n_resolutions,1); % Probably just leave this as 1
 
 % These model parameters are very important.
 filter_sigs = linspace(0.8,0.35,n_resolutions); % Should go from about 0.8 to 0.3
-region_size = linspace(r_size(1),r_size(2),n_resolutions); % Should go from about 20 to 5
+region_size = round(linspace(r_size(1),r_size(2),n_resolutions)); % Should go from about 20 to 5
 
 % Build a 2D gray-level profile for each landmark at each resolution
 for n_resolution = 1:n_resolutions
